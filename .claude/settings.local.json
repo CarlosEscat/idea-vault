@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000 -o /dev/null -w \"%{http_code}\")",
+      "Bash(cat /tmp/idea-vault-dev.log)",
+      "Bash(curl -s http://localhost:3000/auth/login -o /dev/null -w \"%{http_code}\")",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}
