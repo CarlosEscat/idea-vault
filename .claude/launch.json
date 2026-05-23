@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "idea-vault",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd /Users/carlosescat/Desktop/Dev/idea-vault && node_modules/.bin/next dev"],
       "port": 3000,
       "autoPort": false
     }
