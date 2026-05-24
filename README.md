@@ -16,11 +16,12 @@ Idea Vault is a personal knowledge base inspired by Andrej Karpathy's LLM Wiki c
 
 ## Tech Stack
 
-- **Next.js 14** (App Router)
+- **Next.js 16** (App Router)
+- **React 19**
 - **Supabase** (Auth + Postgres + RLS)
 - **AES-256 encryption** (server-side, per-user keys)
 - **D3.js** (force-directed knowledge graph)
-- **Tailwind CSS**
+- **Tailwind CSS v4**
 - **Docker + Nginx** (deployment)
 
 ---
@@ -75,10 +76,17 @@ docker-compose up -d --build
 idea-vault/
 ├── app/
 │   ├── api/
-│   │   ├── ideas/capture/route.ts   # POST: capture new idea
-│   │   ├── ideas/graph/route.ts     # GET: graph data
-│   │   ├── llm/route.ts             # GET/POST: LLM settings
-│   │   └── export/route.ts          # GET: export vault as MD
+│   │   ├── embeddings/route.ts             # POST: generate embeddings
+│   │   ├── embeddings/backfill/route.ts    # POST: backfill embeddings
+│   │   ├── export/route.ts                 # GET: export vault as MD
+│   │   ├── ideas/capture/route.ts          # POST: capture new idea
+│   │   ├── ideas/graph/route.ts            # GET: graph data
+│   │   ├── ideas/[slug]/route.ts           # GET/PATCH/DELETE: single idea
+│   │   ├── ideas/[slug]/versions/route.ts  # GET: idea version history
+│   │   ├── llm/route.ts                    # GET/POST: LLM settings
+│   │   ├── vault/route.ts                  # GET: all ideas
+│   │   ├── vault/meta/route.ts             # GET: vault metadata
+│   │   └── vault/search/route.ts           # GET: semantic search
 │   ├── auth/{login,signup}/
 │   ├── dashboard/
 │   ├── vault/
@@ -87,13 +95,14 @@ idea-vault/
 ├── lib/
 │   ├── supabase/client.ts           # Browser + server clients
 │   ├── encryption/index.ts          # AES-256 encrypt/decrypt
+│   ├── embeddings/providers.ts      # Embedding provider abstraction
 │   ├── llm/providers.ts             # LLM abstraction (BYOK)
+│   ├── tagColor.ts                  # Tag colour helpers
 │   └── vault/
 │       ├── index.ts                 # Core vault logic
 │       └── prompts.ts               # System prompts
 ├── types/index.ts
 ├── supabase/schema.sql              # DB schema + RLS policies
-├── middleware.ts                    # Auth protection
 ├── Dockerfile
 ├── docker-compose.yml
 └── nginx.conf
@@ -127,12 +136,12 @@ idea-vault/
 - [x] LLM abstraction layer (BYOK)
 - [x] Server-side encryption
 - [x] Export vault as `.md` files
-- [ ] Force-directed knowledge graph UI
-- [ ] Idea detail panel (click node → read + expand)
-- [ ] Gap surfacing ("You haven't explored X yet")
+- [x] Force-directed knowledge graph UI
+- [x] Idea detail panel (click node → read + expand)
+- [x] Gap surfacing ("You haven't explored X yet")
+- [x] Vault search (semantic)
+- [x] Idea versioning
 - [ ] Mobile capture
-- [ ] Vault search
-- [ ] Idea versioning
 
 ---
 

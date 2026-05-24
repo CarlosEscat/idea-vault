@@ -112,7 +112,7 @@ export default function DashboardPage() {
           {/* Date */}
           <div style={{
             fontSize: 11,
-            color: 'var(--color-ink-faint)',
+            color: '#ffffff',
             letterSpacing: '0.4px',
             textTransform: 'uppercase',
             marginBottom: '0.5rem',
@@ -168,7 +168,7 @@ export default function DashboardPage() {
               <>
                 <div style={{
                   fontSize: 11,
-                  color: 'var(--color-ink-faint)',
+                  color: '#ffffff',
                   letterSpacing: '0.4px',
                   textTransform: 'uppercase',
                   marginBottom: '0.75rem',

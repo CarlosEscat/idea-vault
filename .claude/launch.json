@@ -5,8 +5,9 @@
       "name": "idea-vault",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
+      "cwd": "/Users/carlosescat/Desktop/Dev/idea-vault",
       "port": 3000,
-      "autoPort": false
+      "autoPort": true
     }
   ]
 }
