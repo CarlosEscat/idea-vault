@@ -21,18 +21,15 @@ export default function DashboardPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      // Get user
       const { data: { user } } = await supabase.auth.getUser()
       if (user?.email) {
         setUserName(user.email.split('@')[0])
       }
 
-      // Get ideas
       const vaultRes = await fetch('/api/vault')
       const vaultData = await vaultRes.json()
       if (vaultData.data) setIdeas(vaultData.data)
 
-      // Get LLM settings
       const settingsRes = await fetch('/api/llm')
       const settingsData = await settingsRes.json()
       if (settingsData.data?.model) {
@@ -56,11 +53,9 @@ export default function DashboardPage() {
     }
   }
 
-  // Count unique connections
   const totalConnections = ideas.reduce((sum, idea) => sum + idea.connections.length, 0)
   const categories = new Set(ideas.map(i => i.category)).size
 
-  // Greeting
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
   const dateStr = new Date().toLocaleDateString('en-GB', {
@@ -71,131 +66,150 @@ export default function DashboardPage() {
   })
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <Sidebar userName={userName} ideaCount={ideas.length} />
-
-      <main style={{
-        flex: 1,
-        padding: '4rem 2.5rem 2rem',
-        overflow: 'auto',
-        maxWidth: 900,
-        margin: '0 auto',
-        width: '100%',
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      background: '#e9f2ff',
+    }}>
+      {/* Header */}
+      <header style={{
+        padding: '12px 20px',
+        fontWeight: 700,
+        fontSize: 15,
+        flexShrink: 0,
+        letterSpacing: '-0.2px',
+        background: 'linear-gradient(90deg, #c9fddc 0%, #95bbfe 100%)',
+        boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
       }}>
-        {/* Date */}
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 11,
-          color: 'var(--color-ink-faint)',
-          letterSpacing: '0.5px',
-          textTransform: 'uppercase',
-          marginBottom: '0.5rem',
+        Idea Vault
+      </header>
+
+      {/* Body */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        gap: 12,
+        padding: 12,
+        overflow: 'hidden',
+        minHeight: 0,
+      }}>
+        <Sidebar userName={userName} ideaCount={ideas.length} />
+
+        <main style={{
+          flex: 1,
+          margin: '30px 70px 30px 10px',
+          borderRadius: 'var(--radius-xl)',
+          overflow: 'auto',
+          padding: '2rem 2.5rem',
+          minWidth: 0,
+          boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+          background: '#95bbfe',
         }}>
-          {dateStr}
-        </div>
+          {/* All content centered */}
+          <div style={{ maxWidth: 580, margin: '0 auto' }}>
 
-        {/* Heading */}
-        <h1 style={{
-          fontSize: 22,
-          fontWeight: 500,
-          marginBottom: '2rem',
-          lineHeight: 1.3,
-        }}>
-          {greeting}{userName ? `, ${userName}` : ''}.
-          <br />
-          <em style={{ fontStyle: 'italic' }}>What&apos;s on your mind?</em>
-        </h1>
-
-        {/* Onboarding nudge */}
-        {providerLabel === 'No LLM configured' && (
+          {/* Date */}
           <div style={{
-            padding: '12px 16px',
-            marginBottom: '1.5rem',
-            border: '0.5px solid var(--color-border-strong)',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--color-accent-light)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 12,
-          }}>
-            Configure your AI provider in{' '}
-            <a href="/settings" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>
-              Settings
-            </a>
-            {' '}before capturing ideas →
-          </div>
-        )}
-
-        {/* Capture */}
-        <div style={{ marginTop: '1.5rem' }}>
-          <CaptureInput providerLabel={providerLabel} onCapture={handleCapture} />
-        </div>
-
-        {/* Stats + Recent ideas — narrower column */}
-        <div style={{ maxWidth: 580, margin: '0 auto' }}>
-          {ideas.length > 0 && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 12,
-              marginBottom: '2rem',
-            }}>
-              <StatCard value={ideas.length} label="ideas" />
-              <StatCard value={totalConnections} label="connections" />
-              <StatCard value={categories} label="categories" />
-            </div>
-          )}
-
-          {ideas.length > 0 && (
-            <>
-              <div style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                color: 'var(--color-ink-faint)',
-                letterSpacing: '0.5px',
-                textTransform: 'uppercase',
-                marginBottom: '0.75rem',
-              }}>
-                Recent ideas
-              </div>
-              <div style={{
-                border: '0.5px solid var(--color-border)',
-                borderRadius: 'var(--radius-lg)',
-                overflow: 'hidden',
-                background: '#fff',
-              }}>
-                {ideas.slice(0, 10).map((idea, i) => (
-                  <IdeaRow
-                    key={idea.id}
-                    idea={idea}
-                    index={i + 1}
-                    onClick={setSelectedIdea}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Empty state */}
-        {!loading && ideas.length === 0 && (
-          <div style={{
-            textAlign: 'center',
-            padding: '3rem 1rem',
+            fontSize: 11,
             color: 'var(--color-ink-faint)',
+            letterSpacing: '0.4px',
+            textTransform: 'uppercase',
+            marginBottom: '0.5rem',
           }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>○</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>
-              Your vault is empty
-            </div>
-            <div style={{ fontSize: 14, fontStyle: 'italic', marginTop: 6 }}>
-              Capture your first thought above
-            </div>
+            {dateStr}
           </div>
-        )}
 
-        {/* Gaps */}
-        <SuggestedGaps gaps={gaps} />
-      </main>
+          {/* Greeting */}
+          <h1 style={{
+            fontSize: 22,
+            fontWeight: 700,
+            marginBottom: '2rem',
+            lineHeight: 1.3,
+          }}>
+            {greeting}{userName ? `, ${userName}` : ''}.
+            <br />
+            <em style={{ fontStyle: 'italic', fontWeight: 600 }}>What&apos;s on your mind?</em>
+          </h1>
+
+          {/* Onboarding nudge */}
+          {providerLabel === 'No LLM configured' && (
+            <div style={{
+              padding: '12px 16px',
+              marginBottom: '1.5rem',
+              border: '1px solid var(--color-border-strong)',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--color-accent-light)',
+              fontSize: 12,
+            }}>
+              Configure your AI provider in{' '}
+              <a href="/settings" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>
+                Settings
+              </a>
+              {' '}before capturing ideas →
+            </div>
+          )}
+
+          <CaptureInput providerLabel={providerLabel} onCapture={handleCapture} />
+            {ideas.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 10,
+                marginBottom: '2rem',
+              }}>
+                <StatCard value={ideas.length} label="Ideas" />
+                <StatCard value={totalConnections} label="Connections" />
+                <StatCard value={categories} label="Categories" />
+              </div>
+            )}
+
+            {ideas.length > 0 && (
+              <>
+                <div style={{
+                  fontSize: 11,
+                  color: 'var(--color-ink-faint)',
+                  letterSpacing: '0.4px',
+                  textTransform: 'uppercase',
+                  marginBottom: '0.75rem',
+                }}>
+                  Latest Ideas
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {ideas.slice(0, 10).map((idea, i) => (
+                    <IdeaRow
+                      key={idea.id}
+                      idea={idea}
+                      index={i + 1}
+                      onClick={setSelectedIdea}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Empty state */}
+          {!loading && ideas.length === 0 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '3rem 1rem',
+              color: 'var(--color-ink-faint)',
+            }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>○</div>
+              <div style={{ fontSize: 13 }}>
+                Your vault is empty
+              </div>
+              <div style={{ fontSize: 14, fontStyle: 'italic', marginTop: 6 }}>
+                Capture your first thought above
+              </div>
+            </div>
+          )}
+
+          {/* Gaps */}
+          <SuggestedGaps gaps={gaps} />
+        </main>
+      </div>
 
       {/* Detail panel */}
       {selectedIdea && (
@@ -210,6 +224,7 @@ export default function DashboardPage() {
             }}
           />
           <IdeaDetail
+            floating
             idea={selectedIdea}
             onClose={() => setSelectedIdea(null)}
             onDelete={(id) => setIdeas(prev => prev.filter(i => i.id !== id))}

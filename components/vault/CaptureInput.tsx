@@ -42,106 +42,98 @@ export default function CaptureInput({ providerLabel, onCapture }: CaptureInputP
   }
 
   return (
-    <div style={{
-      border: '0.5px solid var(--color-border-strong)',
-      borderRadius: 'var(--radius-lg)',
-      padding: '1.75rem 2rem',
-      marginBottom: '2rem',
-      background: '#fff',
-    }}>
+    <div style={{ position: 'relative', marginBottom: '2rem' }}>
+      {/* Card */}
       <div style={{
-        fontFamily: 'var(--font-mono)',
-        fontSize: 10,
-        color: 'var(--color-ink-faint)',
-        letterSpacing: '0.5px',
-        textTransform: 'uppercase',
-        marginBottom: '0.75rem',
+        borderTop: '5px solid #c9fddc',
+        borderRight: '1.5px solid var(--color-border-strong)',
+        borderBottom: '1.5px solid var(--color-border-strong)',
+        borderLeft: '5px solid #c9fddc',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: '5px 5px 0 0 #004aac',
+        padding: '1.5rem 1.75rem',
+        background: '#fff',
+        position: 'relative',
       }}>
-        New thought
-      </div>
+        <textarea
+          value={thought}
+          onChange={e => setThought(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Drop a raw thought here — a half-formed idea, a connection you noticed, a question you can't shake..."
+          disabled={loading}
+          style={{
+            width: '100%',
+            border: 'none',
+            outline: 'none',
+            fontFamily: 'var(--font-serif)',
+            fontSize: 15,
+            color: 'var(--color-ink)',
+            background: 'transparent',
+            resize: 'none',
+            lineHeight: 1.7,
+            minHeight: 88,
+          }}
+        />
 
-      <textarea
-        value={thought}
-        onChange={e => setThought(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Drop a raw thought here — a half-formed idea, a connection you noticed, a question you can't shake..."
-        disabled={loading}
-        style={{
-          width: '100%',
-          border: 'none',
-          outline: 'none',
-          fontFamily: 'var(--font-serif)',
-          fontSize: 15,
-          color: 'var(--color-ink)',
-          background: 'transparent',
-          resize: 'none',
-          lineHeight: 1.7,
-          minHeight: 80,
-        }}
-      />
+        {error && (
+          <div style={{
+            fontSize: 12,
+            color: '#dc2626',
+            marginTop: 6,
+            marginBottom: 4,
+          }}>
+            {error}
+          </div>
+        )}
 
-      {error && (
         <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 12,
-          color: '#c0392b',
-          marginTop: 8,
-        }}>
-          {error}
-        </div>
-      )}
-
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginTop: '1rem',
-        paddingTop: '1rem',
-        borderTop: '0.5px solid var(--color-border)',
-      }}>
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 11,
-          color: 'var(--color-ink-faint)',
           display: 'flex',
           alignItems: 'center',
-          gap: 6,
+          justifyContent: 'space-between',
+          marginTop: '0.875rem',
+          paddingTop: '0.875rem',
+          borderTop: '1px solid var(--color-border)',
         }}>
-          <span style={{
-            width: 6, height: 6,
-            borderRadius: '50%',
-            background: loading ? '#f0ad4e' : 'var(--color-accent)',
-            display: 'inline-block',
-            flexShrink: 0,
-          }} />
-          {loading ? 'Thinking...' : providerLabel}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 10,
+          <div style={{
+            fontSize: 12,
             color: 'var(--color-ink-faint)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
           }}>
-            ⌘↵ to capture
-          </span>
-          <button
-            onClick={handleCapture}
-            disabled={loading || !thought.trim()}
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 12,
-              padding: '7px 16px',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              background: thought.trim() && !loading ? '#097bed' : 'var(--color-paper-mid)',
-              color: thought.trim() && !loading ? '#ffffff' : 'var(--color-ink-faint)',
-              cursor: thought.trim() && !loading ? 'pointer' : 'not-allowed',
-              transition: 'background 0.15s, color 0.15s',
-            }}
-          >
-            {loading ? 'Capturing...' : 'Capture →'}
-          </button>
+            <span style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: loading ? '#f59e0b' : 'var(--color-green)',
+              display: 'inline-block',
+              flexShrink: 0,
+            }} />
+            {loading ? 'Thinking...' : providerLabel}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 11, color: 'var(--color-ink-faint)' }}>
+              ⌘↵ to capture
+            </span>
+            <button
+              onClick={handleCapture}
+              disabled={loading || !thought.trim()}
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                padding: '8px 22px',
+                borderRadius: 9999,
+                border: 'none',
+                background: thought.trim() && !loading ? '#004aac' : 'var(--color-paper-mid)',
+                color: thought.trim() && !loading ? '#ffffff' : 'var(--color-ink-faint)',
+                cursor: thought.trim() && !loading ? 'pointer' : 'not-allowed',
+                transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              {loading ? 'Capturing...' : 'Capture'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

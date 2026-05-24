@@ -16,22 +16,29 @@ export default function IdeaRow({ idea, index, onClick }: IdeaRowProps) {
       style={{
         display: 'flex',
         alignItems: 'flex-start',
-        gap: '1rem',
-        padding: '0.65rem 1rem',
-        borderBottom: '0.5px solid var(--color-border)',
+        gap: '0.875rem',
+        padding: '0.75rem 1rem',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-lg)',
         cursor: 'pointer',
-        transition: 'background 0.1s',
+        background: '#fff',
+        transition: 'border-color 0.1s, background 0.1s',
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-paper-warm)')}
-      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = 'var(--color-accent)'
+        e.currentTarget.style.background = 'var(--color-paper-warm)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = 'var(--color-border)'
+        e.currentTarget.style.background = '#fff'
+      }}
     >
       {/* Index */}
       <div style={{
-        fontFamily: 'var(--font-mono)',
         fontSize: 11,
         color: 'var(--color-ink-faint)',
         minWidth: 28,
-        paddingTop: 3,
+        paddingTop: 2,
         flexShrink: 0,
       }}>
         {String(index).padStart(3, '0')}
@@ -56,12 +63,10 @@ export default function IdeaRow({ idea, index, onClick }: IdeaRowProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
           {idea.tags.slice(0, 3).map(tag => (
             <span key={tag} style={{
-              fontFamily: 'var(--font-mono)',
               fontSize: 10,
               padding: '2px 8px',
               borderRadius: 20,
               background: tagColor(tag),
-              border: 'none',
               color: '#ffffff',
             }}>
               {tag}
@@ -76,17 +81,13 @@ export default function IdeaRow({ idea, index, onClick }: IdeaRowProps) {
         alignItems: 'center',
         gap: 8,
         flexShrink: 0,
-        paddingTop: 3,
+        paddingTop: 2,
       }}>
         {idea.is_favorite && (
-          <span style={{ fontSize: 12, lineHeight: 1, color: '#f5c518' }} title="Favorite">★</span>
+          <span style={{ fontSize: 12, lineHeight: 1, color: '#f59e0b' }} title="Favorite">★</span>
         )}
         {idea.connections.length > 0 && (
-          <span style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11,
-            color: 'var(--color-ink-faint)',
-          }}>
+          <span style={{ fontSize: 11, color: 'var(--color-ink-faint)' }}>
             ⟷ {idea.connections.length}
           </span>
         )}

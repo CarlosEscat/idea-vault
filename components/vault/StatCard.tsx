@@ -6,22 +6,23 @@ interface StatCardProps {
 export default function StatCard({ value, label }: StatCardProps) {
   return (
     <div style={{
-      background: 'var(--color-paper-warm)',
-      borderRadius: 'var(--radius-md)',
-      padding: '0.65rem 0.85rem',
+      border: '1px solid var(--color-border)',
+      borderRadius: 'var(--radius-lg)',
+      padding: '1rem 1.25rem',
+      background: '#fff',
     }}>
       <div style={{
-        fontSize: 18,
-        fontWeight: 500,
+        fontSize: 34,
+        fontWeight: 600,
         lineHeight: 1,
-        marginBottom: 3,
+        marginBottom: 6,
       }}>
         {value}
       </div>
       <div style={{
-        fontFamily: 'var(--font-mono)',
-        fontSize: 11,
+        fontSize: 12,
         color: 'var(--color-ink-muted)',
+        textTransform: 'capitalize',
       }}>
         {label}
       </div>
