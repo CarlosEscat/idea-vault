@@ -17,7 +17,6 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError(error.message)
@@ -27,118 +26,104 @@ export default function LoginPage() {
     }
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '10px 16px',
+    fontSize: 14,
+    fontFamily: 'var(--font-serif)',
+    border: 'none',
+    borderRadius: 'var(--radius-xl)',
+    background: '#fff',
+    outline: 'none',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    boxSizing: 'border-box',
+  }
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 13,
+    fontWeight: 600,
+    color: 'var(--color-ink)',
+    display: 'block',
+    marginBottom: '0.4rem',
+  }
+
   return (
     <div style={{
-      minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'var(--color-paper)',
-      padding: '2rem',
+      flexDirection: 'column',
+      minHeight: '100vh',
+      background: '#e9f2ff',
     }}>
-      <div style={{ width: 360 }}>
-        {/* Logo */}
+      {/* Header */}
+      <header style={{
+        padding: '12px 20px',
+        fontWeight: 700,
+        fontSize: 15,
+        flexShrink: 0,
+        letterSpacing: '-0.2px',
+        background: 'linear-gradient(90deg, #c9fddc 0%, #95bbfe 100%)',
+        boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+      }}>
+        Idea Vault
+      </header>
+
+      {/* Centered card */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem',
+      }}>
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          marginBottom: '2.5rem',
-          justifyContent: 'center',
+          width: 340,
+          background: '#95bbfe',
+          borderRadius: 'var(--radius-xl)',
+          boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+          padding: '2.25rem 2rem',
         }}>
-          <span style={{
-            width: 10, height: 10,
-            borderRadius: '50%',
-            background: 'var(--color-ink)',
-            display: 'inline-block',
-          }} />
-          <span style={{ fontFamily: 'var(--font-serif)', fontSize: 18, fontWeight: 500 }}>
-            Idea Vault
-          </span>
-        </div>
+          <h1 style={{
+            fontSize: 26,
+            fontWeight: 700,
+            textAlign: 'center',
+            marginBottom: '0.3rem',
+          }}>
+            Welcome back
+          </h1>
+          <p style={{
+            textAlign: 'center',
+            fontSize: 13,
+            color: 'var(--color-ink-muted)',
+            marginBottom: '1.75rem',
+          }}>
+            sign in to your Vault
+          </p>
 
-        <h1 style={{
-          fontSize: 22,
-          fontWeight: 500,
-          textAlign: 'center',
-          marginBottom: '0.5rem',
-        }}>
-          Welcome back
-        </h1>
-        <p style={{
-          textAlign: 'center',
-          fontSize: 14,
-          color: 'var(--color-ink-muted)',
-          fontStyle: 'italic',
-          marginBottom: '2rem',
-        }}>
-          Sign in to your vault
-        </p>
-
-        <div onSubmit={handleLogin} style={{ display: 'contents' }}>
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                color: 'var(--color-ink-faint)',
-                letterSpacing: '0.5px',
-                textTransform: 'uppercase',
-                display: 'block',
-                marginBottom: 6,
-              }}>
-                Email
-              </label>
+              <label style={labelStyle}>Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  fontSize: 14,
-                  fontFamily: 'var(--font-serif)',
-                  border: '0.5px solid var(--color-border-strong)',
-                  borderRadius: 'var(--radius-md)',
-                  background: '#fff',
-                  outline: 'none',
-                }}
+                style={inputStyle}
               />
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                color: 'var(--color-ink-faint)',
-                letterSpacing: '0.5px',
-                textTransform: 'uppercase',
-                display: 'block',
-                marginBottom: 6,
-              }}>
-                Password
-              </label>
+              <label style={labelStyle}>Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  fontSize: 14,
-                  fontFamily: 'var(--font-serif)',
-                  border: '0.5px solid var(--color-border-strong)',
-                  borderRadius: 'var(--radius-md)',
-                  background: '#fff',
-                  outline: 'none',
-                }}
+                style={inputStyle}
               />
             </div>
 
             {error && (
               <div style={{
-                fontFamily: 'var(--font-mono)',
                 fontSize: 12,
                 color: '#c0392b',
                 marginBottom: '1rem',
@@ -153,33 +138,33 @@ export default function LoginPage() {
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '10px',
-                fontSize: 13,
-                fontFamily: 'var(--font-mono)',
-                border: '0.5px solid var(--color-border-strong)',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--color-ink)',
-                color: 'var(--color-paper)',
+                padding: '11px',
+                fontSize: 14,
+                fontWeight: 600,
+                border: 'none',
+                borderRadius: 'var(--radius-xl)',
+                background: '#004aac',
+                color: '#fff',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.6 : 1,
+                marginBottom: '1rem',
               }}
             >
-              {loading ? 'Signing in...' : 'Sign in →'}
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
-        </div>
 
-        <p style={{
-          textAlign: 'center',
-          fontSize: 13,
-          color: 'var(--color-ink-muted)',
-          marginTop: '1.5rem',
-        }}>
-          No account?{' '}
-          <Link href="/auth/signup" style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>
-            Create one
-          </Link>
-        </p>
+          <p style={{
+            textAlign: 'center',
+            fontSize: 13,
+            color: 'var(--color-ink-muted)',
+          }}>
+            No Account?{' '}
+            <Link href="/auth/signup" style={{ color: '#004aac', fontWeight: 600, textDecoration: 'none' }}>
+              Create one
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

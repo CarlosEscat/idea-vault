@@ -6,21 +6,40 @@ import type { LLMProviderType, EmbeddingsProviderType } from '@/types'
 import { LLM_MODELS, LLM_DEFAULT_MODELS } from '@/types'
 import { EMBEDDINGS_MODELS, EMBEDDINGS_DEFAULT_MODELS } from '@/lib/embeddings/providers'
 
-const LLM_PROVIDERS: { id: LLMProviderType; name: string; desc: string }[] = [
-  { id: 'anthropic', name: 'Anthropic', desc: 'Claude models' },
-  { id: 'openai',    name: 'OpenAI',    desc: 'GPT and o-series models' },
-  { id: 'google',    name: 'Google',    desc: 'Gemini models' },
-  { id: 'ollama',    name: 'Ollama',    desc: 'Local models — requires a running Ollama server' },
+const LLM_PROVIDERS: { id: LLMProviderType; name: string }[] = [
+  { id: 'anthropic', name: 'Anthropic' },
+  { id: 'openai',    name: 'OpenAI' },
+  { id: 'google',    name: 'Google' },
+  { id: 'ollama',    name: 'Ollama' },
 ]
 
-const EMBEDDINGS_PROVIDERS: { id: EmbeddingsProviderType; name: string; desc: string }[] = [
-  { id: 'openai',  name: 'OpenAI',  desc: 'text-embedding-3-small — recommended' },
-  { id: 'google',  name: 'Google',  desc: 'text-embedding-004 — use your Gemini API key' },
-  { id: 'ollama',  name: 'Ollama',  desc: 'Local embeddings — requires a running Ollama server' },
+const EMBEDDINGS_PROVIDERS: { id: EmbeddingsProviderType; name: string }[] = [
+  { id: 'ollama',  name: 'Ollama' },
+  { id: 'openai',  name: 'OpenAI' },
+  { id: 'google',  name: 'Google' },
 ]
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '10px 16px',
+  fontSize: 14,
+  fontFamily: 'var(--font-serif)',
+  border: 'none',
+  borderRadius: 'var(--radius-xl)',
+  background: '#fff',
+  outline: 'none',
+  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+}
+
+const sectionLabel: React.CSSProperties = {
+  fontSize: 14,
+  fontWeight: 700,
+  color: 'var(--color-ink)',
+  display: 'block',
+  marginBottom: '0.6rem',
+}
 
 export default function SettingsPage() {
-  // LLM state
   const [provider, setProvider] = useState<LLMProviderType>('anthropic')
   const [model, setModel] = useState(LLM_DEFAULT_MODELS.anthropic)
   const [apiKey, setApiKey] = useState('')
@@ -30,7 +49,6 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Embeddings state
   const [embProvider, setEmbProvider] = useState<EmbeddingsProviderType>('openai')
   const [embModel, setEmbModel] = useState(EMBEDDINGS_DEFAULT_MODELS.openai)
   const [embApiKey, setEmbApiKey] = useState('')
@@ -40,7 +58,6 @@ export default function SettingsPage() {
   const [embSaved, setEmbSaved] = useState(false)
   const [embError, setEmbError] = useState<string | null>(null)
 
-  // Backfill state
   const [backfilling, setBackfilling] = useState(false)
   const [backfillResult, setBackfillResult] = useState<{ total: number; done: number; failed: number } | null>(null)
   const [backfillError, setBackfillError] = useState<string | null>(null)
@@ -85,83 +102,18 @@ export default function SettingsPage() {
     setEmbSaved(false)
   }
 
-  async function handleBackfill() {
-    setBackfilling(true)
-    setBackfillResult(null)
-    setBackfillError(null)
-    try {
-      const res = await fetch('/api/embeddings/backfill', { method: 'POST' })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? 'Backfill failed')
-      setBackfillResult(json.data)
-    } catch (err) {
-      setBackfillError(err instanceof Error ? err.message : 'Backfill failed')
-    } finally {
-      setBackfilling(false)
-    }
-  }
-
-  async function handleEmbSave() {
-    if (!embApiKey && !embHasExistingKey && embProvider !== 'ollama') {
-      setEmbError('Please enter your API key')
-      return
-    }
-
-    setEmbSaving(true)
-    setEmbError(null)
-    setEmbSaved(false)
-
-    const body: Record<string, string> = { provider: embProvider, model: embModel }
-    if (embProvider === 'ollama') {
-      body.baseUrl = embBaseUrl
-      body.apiKey = 'ollama'
-    } else if (embApiKey) {
-      body.apiKey = embApiKey
-    } else if (embHasExistingKey) {
-      body.apiKey = '__keep__'
-    }
-
-    try {
-      const res = await fetch('/api/embeddings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      const data = await res.json()
-      if (data.error) throw new Error(data.error)
-      setEmbSaved(true)
-      setEmbHasExistingKey(true)
-    } catch (err) {
-      setEmbError(err instanceof Error ? err.message : 'Failed to save')
-    } finally {
-      setEmbSaving(false)
-    }
-  }
-
   async function handleSave() {
     if (!apiKey && !hasExistingKey && provider !== 'ollama') {
       setError('Please enter your API key')
       return
     }
-
     setSaving(true)
     setError(null)
     setSaved(false)
-
     const body: Record<string, string> = { provider, model }
     if (apiKey) body.apiKey = apiKey
-    if (provider === 'ollama') {
-      body.baseUrl = baseUrl
-      body.apiKey = 'ollama'
-    }
-
-    // Only send apiKey if user typed a new one
-    if (!apiKey && hasExistingKey) {
-      // Don't overwrite existing key — skip save or handle differently
-      // For simplicity, require re-entry when switching providers
-      body.apiKey = '__keep__'
-    }
-
+    if (provider === 'ollama') { body.baseUrl = baseUrl; body.apiKey = 'ollama' }
+    if (!apiKey && hasExistingKey) body.apiKey = '__keep__'
     try {
       const res = await fetch('/api/llm', {
         method: 'POST',
@@ -179,391 +131,311 @@ export default function SettingsPage() {
     }
   }
 
-  const inputStyle = {
-    width: '100%',
-    padding: '10px 14px',
-    fontSize: 14,
-    fontFamily: 'var(--font-serif)',
-    border: '0.5px solid var(--color-border-strong)',
-    borderRadius: 'var(--radius-md)',
-    background: '#fff',
-    outline: 'none',
+  async function handleEmbSave() {
+    if (!embApiKey && !embHasExistingKey && embProvider !== 'ollama') {
+      setEmbError('Please enter your API key')
+      return
+    }
+    setEmbSaving(true)
+    setEmbError(null)
+    setEmbSaved(false)
+    const body: Record<string, string> = { provider: embProvider, model: embModel }
+    if (embProvider === 'ollama') { body.baseUrl = embBaseUrl; body.apiKey = 'ollama' }
+    else if (embApiKey) body.apiKey = embApiKey
+    else if (embHasExistingKey) body.apiKey = '__keep__'
+    try {
+      const res = await fetch('/api/embeddings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setEmbSaved(true)
+      setEmbHasExistingKey(true)
+    } catch (err) {
+      setEmbError(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setEmbSaving(false)
+    }
   }
 
-  const labelStyle = {
-    fontFamily: 'var(--font-mono)',
-    fontSize: 10,
-    color: 'var(--color-ink-faint)',
-    letterSpacing: '0.5px',
-    textTransform: 'uppercase' as const,
-    display: 'block',
-    marginBottom: 6,
+  async function handleBackfill() {
+    setBackfilling(true)
+    setBackfillResult(null)
+    setBackfillError(null)
+    try {
+      const res = await fetch('/api/embeddings/backfill', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Backfill failed')
+      setBackfillResult(json.data)
+    } catch (err) {
+      setBackfillError(err instanceof Error ? err.message : 'Backfill failed')
+    } finally {
+      setBackfilling(false)
+    }
+  }
+
+  function providerButton(name: string, active: boolean, onClick: () => void) {
+    return (
+      <button
+        key={name}
+        onClick={onClick}
+        style={{
+          display: 'block',
+          width: '100%',
+          padding: '10px 16px',
+          fontSize: 14,
+          fontWeight: active ? 600 : 400,
+          border: active ? '2px solid #004aac' : 'none',
+          borderRadius: 'var(--radius-xl)',
+          background: active ? '#c9fddc' : '#fff',
+          color: active ? '#004aac' : 'var(--color-ink)',
+          cursor: 'pointer',
+          textAlign: 'left',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          transition: 'all 0.1s',
+        }}
+      >
+        {name}
+      </button>
+    )
+  }
+
+  function saveButton(label: string, onClick: () => void, disabled: boolean) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
+        <button
+          onClick={onClick}
+          disabled={disabled}
+          style={{
+            padding: '10px 22px',
+            fontSize: 13,
+            fontWeight: 600,
+            border: 'none',
+            borderRadius: 'var(--radius-xl)',
+            background: '#004aac',
+            color: '#fff',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.6 : 1,
+            transition: 'opacity 0.15s',
+          }}
+        >
+          {label}
+        </button>
+      </div>
+    )
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <Sidebar />
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      background: '#e9f2ff',
+    }}>
+      {/* Header */}
+      <header style={{
+        padding: '12px 20px',
+        fontWeight: 700,
+        fontSize: 15,
+        flexShrink: 0,
+        letterSpacing: '-0.2px',
+        background: 'linear-gradient(90deg, #c9fddc 0%, #95bbfe 100%)',
+        boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+      }}>
+        Idea Vault
+      </header>
 
-      <main style={{ flex: 1, padding: '2rem 2.5rem', overflow: 'auto', maxWidth: 600 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 500, marginBottom: '0.5rem' }}>
-          Settings
-        </h1>
-        <p style={{
-          fontSize: 14,
-          color: 'var(--color-ink-muted)',
-          marginBottom: '0.5rem',
-        }}>
-          The AI model used to generate responses, extract insights, and chat with your ideas.
-        </p>
-        <p style={{
-          fontSize: 13,
-          color: 'var(--color-ink-faint)',
-          fontStyle: 'italic',
-          marginBottom: '2rem',
-        }}>
-          Bring your own API key — your key is stored locally and never shared.
-        </p>
+      {/* Body */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        gap: 12,
+        padding: 12,
+        overflow: 'hidden',
+        minHeight: 0,
+      }}>
+        <Sidebar />
 
-        {/* Provider selector */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={labelStyle}>Provider</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {LLM_PROVIDERS.map(p => (
-              <button
-                key={p.id}
-                onClick={() => handleProviderChange(p.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: provider === p.id
-                    ? '1.5px solid var(--color-accent)'
-                    : '0.5px solid var(--color-border-strong)',
-                  background: provider === p.id ? 'var(--color-accent-light)' : '#fff',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontFamily: 'var(--font-serif)',
-                }}
-              >
-                <span style={{
-                  width: 8, height: 8,
-                  borderRadius: '50%',
-                  background: provider === p.id ? 'var(--color-accent)' : 'var(--color-border-strong)',
-                  flexShrink: 0,
-                }} />
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>{p.name}</div>
-                  <div style={{
-                    fontSize: 12,
-                    color: 'var(--color-ink-muted)',
-                    fontFamily: 'var(--font-mono)',
-                  }}>
-                    {p.desc}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Model */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={labelStyle}>Model</label>
-          <select
-            value={model}
-            onChange={e => setModel(e.target.value)}
-            style={{
-              ...inputStyle,
-              cursor: 'pointer',
-              appearance: 'none',
-            }}
-          >
-            {LLM_MODELS[provider].map(m => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* API Key */}
-        {provider !== 'ollama' ? (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={labelStyle}>
-              API key
-              {hasExistingKey && (
-                <span style={{ color: 'var(--color-accent)', marginLeft: 8, textTransform: 'none' }}>
-                  ✓ saved
-                </span>
-              )}
-            </label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              placeholder={hasExistingKey ? '••••••••••••' : 'sk-...'}
-              style={inputStyle}
-            />
-            <p style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11,
-              color: 'var(--color-ink-faint)',
-              marginTop: 6,
-            }}>
-              Your key is encrypted at rest — stored with AES-256 encryption
-            </p>
-          </div>
-        ) : (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={labelStyle}>Ollama server URL</label>
-            <input
-              type="text"
-              value={baseUrl}
-              onChange={e => setBaseUrl(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-        )}
-
-        {error && (
-          <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 12,
-            color: '#c0392b',
-            marginBottom: '1rem',
-          }}>
-            {error}
-          </div>
-        )}
-
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          style={{
-            padding: '10px 24px',
-            fontSize: 13,
-            fontFamily: 'var(--font-mono)',
-            border: '0.5px solid var(--color-border-strong)',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--color-ink)',
-            color: 'var(--color-paper)',
-            cursor: saving ? 'not-allowed' : 'pointer',
-            opacity: saving ? 0.6 : 1,
-          }}
-        >
-          {saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save settings →'}
-        </button>
-
-        {/* ── Embeddings ────────────────────────────────────────────── */}
+        {/* Single card with two columns */}
         <div style={{
-          marginTop: '3rem',
-          paddingTop: '2rem',
-          borderTop: '0.5px solid var(--color-border)',
+          flex: 1,
+          margin: '30px 70px 30px 10px',
+          borderRadius: 'var(--radius-xl)',
+          background: '#95bbfe',
+          boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+          overflow: 'hidden',
+          display: 'flex',
+          minWidth: 0,
         }}>
-          <h2 style={{ fontSize: 18, fontWeight: 500, marginBottom: '0.5rem' }}>
-            Embeddings
-          </h2>
-          <p style={{
-            fontSize: 14,
-            color: 'var(--color-ink-muted)',
-            marginBottom: '0.5rem',
-          }}>
-            Embeddings convert your ideas into numbers that capture meaning — this powers "find similar ideas" and semantic search.
-          </p>
-          <p style={{
-            fontSize: 13,
-            color: 'var(--color-ink-faint)',
-            fontStyle: 'italic',
-            marginBottom: '2rem',
-          }}>
-            Separate from your AI provider — you can mix and match (e.g. Anthropic for chat, OpenAI for embeddings).
-          </p>
 
-          {/* Embeddings provider selector */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={labelStyle}>Provider</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {EMBEDDINGS_PROVIDERS.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => handleEmbProviderChange(p.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-md)',
-                    border: embProvider === p.id
-                      ? '1.5px solid var(--color-accent)'
-                      : '0.5px solid var(--color-border-strong)',
-                    background: embProvider === p.id ? 'var(--color-accent-light)' : '#fff',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    fontFamily: 'var(--font-serif)',
-                  }}
-                >
-                  <span style={{
-                    width: 8, height: 8,
-                    borderRadius: '50%',
-                    background: embProvider === p.id ? 'var(--color-accent)' : 'var(--color-border-strong)',
-                    flexShrink: 0,
-                  }} />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{p.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--color-ink-muted)', fontFamily: 'var(--font-mono)' }}>
-                      {p.desc}
-                    </div>
-                  </div>
-                </button>
-              ))}
+          {/* Settings column */}
+          <div style={{
+            flex: 1,
+            overflow: 'auto',
+            padding: '1.75rem',
+          }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: '0.3rem' }}>Settings</h2>
+            <p style={{ fontSize: 13, color: 'var(--color-ink-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+              The AI model used to generate responses, extract insights, and chat with your ideas.
+            </p>
+
+            {/* Provider */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={sectionLabel}>Provider</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {LLM_PROVIDERS.map(p => providerButton(p.name, provider === p.id, () => handleProviderChange(p.id)))}
+              </div>
             </div>
-          </div>
 
-          {/* Embeddings model */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={labelStyle}>Model</label>
-            <select
-              value={embModel}
-              onChange={e => setEmbModel(e.target.value)}
-              style={{ ...inputStyle, cursor: 'pointer', appearance: 'none' }}
-            >
-              {EMBEDDINGS_MODELS[embProvider].map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
+            {/* Model */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={sectionLabel}>Model</label>
+              <select
+                value={model}
+                onChange={e => setModel(e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer', appearance: 'none' }}
+              >
+                {LLM_MODELS[provider].map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Embeddings API key / base URL */}
-          {embProvider !== 'ollama' ? (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={labelStyle}>
-                API key
-                {embHasExistingKey && (
-                  <span style={{ color: 'var(--color-accent)', marginLeft: 8, textTransform: 'none' }}>
-                    ✓ saved
-                  </span>
+            {/* API key / base URL */}
+            <div style={{ marginBottom: '0.5rem' }}>
+              <label style={sectionLabel}>
+                {provider === 'ollama' ? 'Server URL' : 'API KEY'}
+                {hasExistingKey && provider !== 'ollama' && (
+                  <span style={{ color: '#004aac', marginLeft: 8, fontWeight: 400, fontSize: 12 }}>✓ saved</span>
                 )}
               </label>
-              <input
-                type="password"
-                value={embApiKey}
-                onChange={e => setEmbApiKey(e.target.value)}
-                placeholder={embHasExistingKey ? '••••••••••••' : 'sk-...'}
-                style={inputStyle}
-              />
-              <p style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                color: 'var(--color-ink-faint)',
-                marginTop: 6,
-              }}>
-                Your key is encrypted at rest — stored with AES-256 encryption
-              </p>
+              {provider === 'ollama' ? (
+                <input type="text" value={baseUrl} onChange={e => setBaseUrl(e.target.value)} style={inputStyle} />
+              ) : (
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={e => setApiKey(e.target.value)}
+                  placeholder={hasExistingKey ? '••••••••••••' : 'sk-...'}
+                  style={inputStyle}
+                />
+              )}
             </div>
-          ) : (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={labelStyle}>Ollama server URL</label>
-              <input
-                type="text"
-                value={embBaseUrl}
-                onChange={e => setEmbBaseUrl(e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-          )}
 
-          {embError && (
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 12,
-              color: '#c0392b',
-              marginBottom: '1rem',
-            }}>
-              {embError}
-            </div>
-          )}
+            {error && <p style={{ fontSize: 12, color: '#c0392b', marginTop: 6 }}>{error}</p>}
 
-          <button
-            onClick={handleEmbSave}
-            disabled={embSaving}
-            style={{
-              padding: '10px 24px',
-              fontSize: 13,
-              fontFamily: 'var(--font-mono)',
-              border: '0.5px solid var(--color-border-strong)',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--color-ink)',
-              color: 'var(--color-paper)',
-              cursor: embSaving ? 'not-allowed' : 'pointer',
-              opacity: embSaving ? 0.6 : 1,
-            }}
-          >
-            {embSaving ? 'Saving...' : embSaved ? 'Saved ✓' : 'Save embeddings →'}
-          </button>
-
-          {/* Backfill */}
-          <div style={{
-            marginTop: '2rem',
-            paddingTop: '1.5rem',
-            borderTop: '0.5px solid var(--color-border)',
-          }}>
-            <div style={{ fontSize: 15, fontWeight: 500, marginBottom: '0.4rem' }}>
-              Backfill missing embeddings
-            </div>
-            <p style={{
-              fontSize: 13,
-              color: 'var(--color-ink-muted)',
-              marginBottom: '1rem',
-              lineHeight: 1.6,
-            }}>
-              Ideas captured before you configured embeddings have no vector. Run this to generate embeddings for all of them — required for semantic connections in the knowledge graph.
-            </p>
-
-            <button
-              onClick={handleBackfill}
-              disabled={backfilling || !embHasExistingKey}
-              title={!embHasExistingKey ? 'Save your embeddings provider first' : undefined}
-              style={{
-                padding: '8px 20px',
-                fontSize: 12,
-                fontFamily: 'var(--font-mono)',
-                border: '0.5px solid var(--color-border-strong)',
-                borderRadius: 'var(--radius-md)',
-                background: '#fff',
-                color: 'var(--color-ink-muted)',
-                cursor: (backfilling || !embHasExistingKey) ? 'not-allowed' : 'pointer',
-                opacity: (backfilling || !embHasExistingKey) ? 0.5 : 1,
-              }}
-            >
-              {backfilling ? 'Backfilling…' : 'Backfill now'}
-            </button>
-
-            {backfillError && (
-              <p style={{
-                marginTop: 10,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                color: '#c0392b',
-              }}>
-                {backfillError}
-              </p>
-            )}
-
-            {backfillResult && (
-              <p style={{
-                marginTop: 10,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                color: backfillResult.failed > 0 ? 'var(--color-ink-muted)' : 'var(--color-accent)',
-              }}>
-                {backfillResult.total === 0
-                  ? 'All ideas already have embeddings.'
-                  : `Done — ${backfillResult.done}/${backfillResult.total} embedded${backfillResult.failed > 0 ? `, ${backfillResult.failed} failed` : ''}.`}
-              </p>
+            {saveButton(
+              saving ? 'Saving...' : saved ? 'Saved ✓' : 'Save Settings',
+              handleSave,
+              saving,
             )}
           </div>
+
+          {/* Vertical divider */}
+          <div style={{ width: 1, background: 'rgba(0,0,0,0.12)', flexShrink: 0 }} />
+
+          {/* Embeddings column */}
+          <div style={{
+            flex: 1,
+            overflow: 'auto',
+            padding: '1.75rem',
+          }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: '0.3rem' }}>Embeddings</h2>
+            <p style={{ fontSize: 13, color: 'var(--color-ink-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+              Embeddings convert your ideas into numbers that capture meaning — this powers &ldquo;find similar ideas&rdquo; and semantic search.
+            </p>
+
+            {/* Provider */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={sectionLabel}>Provider</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {EMBEDDINGS_PROVIDERS.map(p => providerButton(p.name, embProvider === p.id, () => handleEmbProviderChange(p.id)))}
+              </div>
+            </div>
+
+            {/* Model */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={sectionLabel}>Model</label>
+              <select
+                value={embModel}
+                onChange={e => setEmbModel(e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer', appearance: 'none' }}
+              >
+                {EMBEDDINGS_MODELS[embProvider].map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* API key / base URL */}
+            <div style={{ marginBottom: '0.5rem' }}>
+              <label style={sectionLabel}>
+                {embProvider === 'ollama' ? 'Server URL' : 'API KEY'}
+                {embHasExistingKey && embProvider !== 'ollama' && (
+                  <span style={{ color: '#004aac', marginLeft: 8, fontWeight: 400, fontSize: 12 }}>✓ saved</span>
+                )}
+              </label>
+              {embProvider === 'ollama' ? (
+                <input type="text" value={embBaseUrl} onChange={e => setEmbBaseUrl(e.target.value)} style={inputStyle} />
+              ) : (
+                <input
+                  type="password"
+                  value={embApiKey}
+                  onChange={e => setEmbApiKey(e.target.value)}
+                  placeholder={embHasExistingKey ? '••••••••••••' : 'sk-...'}
+                  style={inputStyle}
+                />
+              )}
+            </div>
+
+            {embError && <p style={{ fontSize: 12, color: '#c0392b', marginTop: 6 }}>{embError}</p>}
+
+            {saveButton(
+              embSaving ? 'Saving...' : embSaved ? 'Saved ✓' : 'Save embeddings',
+              handleEmbSave,
+              embSaving,
+            )}
+
+            {/* Backfill section */}
+            <div style={{
+              marginTop: '1.5rem',
+              paddingTop: '1.5rem',
+              borderTop: '1px solid rgba(0,0,0,0.12)',
+            }}>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: '0.4rem' }}>
+                Backfill Missing Embeddings
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--color-ink-muted)', marginBottom: '1rem', lineHeight: 1.6 }}>
+                Ideas captured before you configured embeddings have no vector. Run this to generate embeddings for all of them — required for semantic connections in the knowledge graph.
+              </p>
+
+              {saveButton(
+                backfilling ? 'Backfilling…' : 'Backfill now',
+                handleBackfill,
+                backfilling || !embHasExistingKey,
+              )}
+
+              {backfillError && (
+                <p style={{ marginTop: 8, fontSize: 12, color: '#c0392b' }}>{backfillError}</p>
+              )}
+              {backfillResult && (
+                <p style={{
+                  marginTop: 8,
+                  fontSize: 12,
+                  color: backfillResult.failed > 0 ? 'var(--color-ink-muted)' : '#004aac',
+                }}>
+                  {backfillResult.total === 0
+                    ? 'All ideas already have embeddings.'
+                    : `Done — ${backfillResult.done}/${backfillResult.total} embedded${backfillResult.failed > 0 ? `, ${backfillResult.failed} failed` : ''}.`}
+                </p>
+              )}
+            </div>
+          </div>
+
         </div>
-      </main>
+      </div>
     </div>
   )
 }
