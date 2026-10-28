@@ -1,6 +1,7 @@
 import OpenAI from 'openai'
 import { safeFetch } from '@/lib/url-guard'
 import type { EmbeddingsConfig, EmbeddingsProviderType } from '@/types'
+export { EMBEDDINGS_MODELS, EMBEDDINGS_DEFAULT_MODELS } from './models'
 
 /** Dimension of the `ideas.embedding` column; providers are asked for (or must return) this many. */
 export const EMBEDDING_DIM = 768
@@ -87,18 +88,6 @@ class OllamaEmbeddingsProvider implements EmbeddingsProvider {
 }
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
-
-export const EMBEDDINGS_MODELS: Record<EmbeddingsProviderType, string[]> = {
-  openai: ['text-embedding-3-small', 'text-embedding-3-large', 'text-embedding-ada-002'],
-  google: ['text-embedding-004', 'embedding-001'],
-  ollama: ['nomic-embed-text', 'mxbai-embed-large', 'all-minilm'],
-}
-
-export const EMBEDDINGS_DEFAULT_MODELS: Record<EmbeddingsProviderType, string> = {
-  openai: 'text-embedding-3-small',
-  google: 'text-embedding-004',
-  ollama: 'nomic-embed-text',
-}
 
 export function createEmbeddingsProvider(config: EmbeddingsConfig): EmbeddingsProvider {
   switch (config.provider as EmbeddingsProviderType) {

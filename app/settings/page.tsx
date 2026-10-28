@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import type { LLMProviderType, EmbeddingsProviderType } from '@/types'
 import { LLM_MODELS, LLM_DEFAULT_MODELS } from '@/types'
-import { EMBEDDINGS_MODELS, EMBEDDINGS_DEFAULT_MODELS } from '@/lib/embeddings/providers'
+import { EMBEDDINGS_MODELS, EMBEDDINGS_DEFAULT_MODELS } from '@/lib/embeddings/models'
 import UsageSummary from '@/components/settings/UsageSummary'
 
 const LLM_PROVIDERS: { id: LLMProviderType; name: string }[] = [
