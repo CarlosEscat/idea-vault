@@ -3,6 +3,7 @@ import { createServerClientInstance } from '@/lib/supabase/server'
 import { encrypt } from '@/lib/encryption'
 import type { LLMConfig } from '@/types'
 import { demoWriteBlocked } from '@/lib/auth/demo'
+import { validateBaseUrl } from '@/lib/url-guard'
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,6 +22,9 @@ export async function POST(req: NextRequest) {
     if (!llmConfig.provider || !llmConfig.model) {
       return NextResponse.json({ error: 'provider and model are required' }, { status: 400 })
     }
+
+    const urlError = validateBaseUrl(llmConfig.baseUrl)
+    if (urlError) return NextResponse.json({ error: urlError }, { status: 400 })
 
     // '__keep__' means the client doesn't have a new key — preserve the existing one
     if (llmConfig.apiKey === '__keep__') {

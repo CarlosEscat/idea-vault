@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import ReactMarkdown from 'react-markdown'
+import Markdown from '@/components/Markdown'
 import Sidebar from '@/components/layout/Sidebar'
 import KnowledgeGraph from '@/components/graph/KnowledgeGraph'
 import IdeaDetail from '@/components/vault/IdeaDetail'
@@ -220,7 +220,7 @@ export default function GraphPage() {
                   <span style={{ fontSize: 11, color: 'var(--color-ink-muted)' }}>Loading…</span>
                 ) : overviewMd ? (
                   <div style={{ fontSize: 12, lineHeight: 1.75, color: 'var(--color-ink)' }}>
-                    <ReactMarkdown>{overviewMd}</ReactMarkdown>
+                    <Markdown>{overviewMd}</Markdown>
                   </div>
                 ) : (
                   <div style={{ fontSize: 13, color: 'var(--color-ink-muted)', fontStyle: 'italic' }}>

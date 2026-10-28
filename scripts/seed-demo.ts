@@ -4,7 +4,7 @@
  *   npm run seed:demo
  *
  * Needs (e.g. in .env.local): NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ENCRYPTION_SECRET,
- * DEMO_USER_EMAIL, DEMO_USER_PASSWORD, SEED_EMBEDDINGS_PROVIDER, SEED_EMBEDDINGS_MODEL, SEED_EMBEDDINGS_API_KEY.
+ * DEMO_USER_EMAIL, SEED_EMBEDDINGS_PROVIDER, SEED_EMBEDDINGS_MODEL, SEED_EMBEDDINGS_API_KEY.
  * Re-running replaces the demo user's ideas. Run it with the embeddings model you want the demo to use.
  */
 import { createClient } from '@supabase/supabase-js'
@@ -35,7 +35,8 @@ async function main() {
     auth: { autoRefreshToken: false, persistSession: false },
   })
   const email = need('DEMO_USER_EMAIL')
-  const password = need('DEMO_USER_PASSWORD')
+  // The demo account has no usable password: the app signs visitors in with a server-minted token.
+  const password = `${crypto.randomUUID()}${crypto.randomUUID()}`
   need('ENCRYPTION_SECRET')
 
   // Find or create the demo user; app_metadata.is_demo can only be set with the service role.
@@ -94,7 +95,7 @@ async function main() {
   })
   if (metaError) throw metaError
 
-  console.log(`Seeded ${rows.length} ideas for demo user ${userId}`)
+  console.log(`Seeded ${rows.length} ideas. Set DEMO_USER_ID=${userId} in the app's environment.`)
 }
 
 main().catch(err => {

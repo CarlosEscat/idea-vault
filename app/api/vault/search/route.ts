@@ -6,6 +6,7 @@ import { isDemoUser } from '@/lib/auth/demo'
 import { getUserIdeas } from '@/lib/vault'
 import { keywordSearch } from '@/lib/vault/retrieval'
 import type { EmbeddingsConfig, IdeaRow } from '@/types'
+import { rateLimited } from '@/lib/rate-limit'
 
 export const maxDuration = 30
 
@@ -17,6 +18,9 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const limited = await rateLimited(supabase, 'search')
+    if (limited) return limited
 
     const { query } = await req.json() as { query: string }
     if (!query?.trim()) {

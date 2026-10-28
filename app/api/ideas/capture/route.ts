@@ -5,6 +5,7 @@ import { CaptureValidationError } from '@/lib/vault/schema'
 import { decrypt } from '@/lib/encryption'
 import type { LLMConfig, EmbeddingsConfig, CaptureIdeaRequest } from '@/types'
 import { demoWriteBlocked } from '@/lib/auth/demo'
+import { rateLimited } from '@/lib/rate-limit'
 
 export const maxDuration = 60
 
@@ -19,6 +20,9 @@ export async function POST(req: NextRequest) {
 
     const blocked = demoWriteBlocked(user)
     if (blocked) return blocked
+
+    const limited = await rateLimited(supabase, 'capture')
+    if (limited) return limited
 
     const body: CaptureIdeaRequest = await req.json()
 

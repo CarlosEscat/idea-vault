@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import ReactMarkdown from 'react-markdown'
+import Markdown from '@/components/Markdown'
 
 export default function OverviewPanel() {
   const [overviewMd, setOverviewMd] = useState<string | null>(null)
@@ -138,7 +138,7 @@ export default function OverviewPanel() {
                 lineHeight: 1.75,
                 color: 'var(--color-ink)',
               }}>
-                {overviewMd ? <ReactMarkdown>{overviewMd}</ReactMarkdown> : 'No overview yet — generate one from your ideas.'}
+                {overviewMd ? <Markdown>{overviewMd}</Markdown> : 'No overview yet — generate one from your ideas.'}
               </div>
             )}
           </div>

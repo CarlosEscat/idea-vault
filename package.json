@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:demo": "tsx --env-file=.env.local scripts/seed-demo.ts"
+    "seed:demo": "tsx --env-file=.env.local scripts/seed-demo.ts",
+    "migrate:encryption": "tsx --env-file=.env.local scripts/migrate-encryption.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",

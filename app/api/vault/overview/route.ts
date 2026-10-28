@@ -4,6 +4,7 @@ import { regenerateOverview } from '@/lib/vault'
 import { decrypt } from '@/lib/encryption'
 import type { LLMConfig } from '@/types'
 import { demoWriteBlocked } from '@/lib/auth/demo'
+import { rateLimited } from '@/lib/rate-limit'
 
 export const maxDuration = 60
 
@@ -14,6 +15,9 @@ export async function POST() {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const blocked = demoWriteBlocked(user)
     if (blocked) return blocked
+
+    const limited = await rateLimited(supabase, 'overview')
+    if (limited) return limited
 
     const { data: settings } = await supabase
       .from('user_settings')

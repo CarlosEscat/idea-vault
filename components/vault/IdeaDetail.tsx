@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import ReactMarkdown from 'react-markdown'
+import Markdown from '@/components/Markdown'
 import type { Idea, IdeaVersion } from '@/types'
 import { tagColor } from '@/lib/tagColor'
 
@@ -407,7 +407,7 @@ export default function IdeaDetail({ idea, onClose, onDelete, onUpdate, floating
                           overflow: 'auto',
                           marginBottom: 12,
                         }}>
-                          <ReactMarkdown>{v.content}</ReactMarkdown>
+                          <Markdown>{v.content}</Markdown>
                         </div>
                         <button
                           onClick={() => restoreVersion(v)}
@@ -447,7 +447,7 @@ export default function IdeaDetail({ idea, onClose, onDelete, onUpdate, floating
           />
         ) : (
           <div style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--color-ink)' }}>
-            <ReactMarkdown>{idea.content}</ReactMarkdown>
+            <Markdown>{idea.content}</Markdown>
           </div>
         )}
       </div>

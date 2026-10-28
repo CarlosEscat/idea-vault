@@ -3,6 +3,7 @@ import { createServerClientInstance } from '@/lib/supabase/server'
 import { encrypt, decrypt } from '@/lib/encryption'
 import type { EmbeddingsConfig } from '@/types'
 import { demoWriteBlocked } from '@/lib/auth/demo'
+import { validateBaseUrl } from '@/lib/url-guard'
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,6 +22,9 @@ export async function POST(req: NextRequest) {
     if (!config.provider || !config.model) {
       return NextResponse.json({ error: 'provider and model are required' }, { status: 400 })
     }
+
+    const urlError = validateBaseUrl(config.baseUrl)
+    if (urlError) return NextResponse.json({ error: urlError }, { status: 400 })
 
     // '__keep__' means preserve the existing API key
     if (config.apiKey === '__keep__') {

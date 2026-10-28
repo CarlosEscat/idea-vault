@@ -4,6 +4,7 @@ import { decrypt } from '@/lib/encryption'
 import { createEmbeddingsProvider } from '@/lib/embeddings/providers'
 import type { EmbeddingsConfig, IdeaRow } from '@/types'
 import { demoWriteBlocked } from '@/lib/auth/demo'
+import { rateLimited } from '@/lib/rate-limit'
 
 export const maxDuration = 300
 
@@ -18,6 +19,9 @@ export async function POST() {
 
     const blocked = demoWriteBlocked(user)
     if (blocked) return blocked
+
+    const limited = await rateLimited(supabase, 'embeddings')
+    if (limited) return limited
 
     // Load embeddings config
     const { data: settings } = await supabase
