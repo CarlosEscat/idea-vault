@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -154,14 +155,16 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <form method="post" action="/api/demo" style={{ marginBottom: '1rem' }}>
+          <form method="post" action="/api/demo" onSubmit={() => setDemoLoading(true)} style={{ marginBottom: '1rem' }}>
             <button
               type="submit"
+              disabled={demoLoading}
               style={{
                 width: '100%',
                 padding: '11px',
                 fontSize: 14,
                 fontWeight: 600,
+                opacity: demoLoading ? 0.6 : 1,
                 border: '1px solid #004aac',
                 borderRadius: 'var(--radius-xl)',
                 background: 'transparent',
@@ -169,7 +172,7 @@ export default function LoginPage() {
                 cursor: 'pointer',
               }}
             >
-              Try the demo (no signup)
+              {demoLoading ? 'Opening the demo…' : 'Try the demo (no signup)'}
             </button>
           </form>
 

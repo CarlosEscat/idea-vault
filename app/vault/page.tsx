@@ -99,7 +99,7 @@ export default function VaultPage() {
       </header>
 
       {/* Body */}
-      <div style={{
+      <div className="app-body" style={{
         flex: 1,
         display: 'flex',
         gap: 12,
@@ -109,7 +109,7 @@ export default function VaultPage() {
       }}>
         <Sidebar ideaCount={ideas.length} />
 
-        <main style={{
+        <main className="app-main" style={{
           flex: 1,
           margin: '30px 70px 30px 10px',
           borderRadius: 'var(--radius-xl)',

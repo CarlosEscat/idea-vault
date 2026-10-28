@@ -52,7 +52,7 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
   }
 
   return (
-    <aside style={{
+    <aside className="app-sidebar" style={{
       width: 300,
       minWidth: 300,
       margin: '30px',

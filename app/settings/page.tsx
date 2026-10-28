@@ -268,7 +268,7 @@ export default function SettingsPage() {
       </header>
 
       {/* Body */}
-      <div style={{
+      <div className="app-body" style={{
         flex: 1,
         display: 'flex',
         gap: 12,
@@ -279,7 +279,7 @@ export default function SettingsPage() {
         <Sidebar />
 
         {/* Single card with two columns */}
-        <div style={{
+        <div className="app-main" style={{
           flex: 1,
           margin: '30px 70px 30px 10px',
           borderRadius: 'var(--radius-xl)',

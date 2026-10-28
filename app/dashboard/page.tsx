@@ -86,7 +86,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Body */}
-      <div style={{
+      <div className="app-body" style={{
         flex: 1,
         display: 'flex',
         gap: 12,
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       }}>
         <Sidebar userName={userName} ideaCount={ideas.length} />
 
-        <main style={{
+        <main className="app-main" style={{
           flex: 1,
           margin: '30px 70px 30px 10px',
           borderRadius: 'var(--radius-xl)',

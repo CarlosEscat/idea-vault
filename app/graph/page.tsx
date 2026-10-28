@@ -73,7 +73,7 @@ export default function GraphPage() {
       </header>
 
       {/* Body */}
-      <div style={{
+      <div className="app-body" style={{
         flex: 1,
         display: 'flex',
         gap: 12,
@@ -83,7 +83,7 @@ export default function GraphPage() {
       }}>
         <Sidebar ideaCount={ideas.length} />
 
-        <main style={{
+        <main className="app-main" style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
