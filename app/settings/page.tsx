@@ -5,6 +5,7 @@ import Sidebar from '@/components/layout/Sidebar'
 import type { LLMProviderType, EmbeddingsProviderType } from '@/types'
 import { LLM_MODELS, LLM_DEFAULT_MODELS } from '@/types'
 import { EMBEDDINGS_MODELS, EMBEDDINGS_DEFAULT_MODELS } from '@/lib/embeddings/providers'
+import UsageSummary from '@/components/settings/UsageSummary'
 
 const LLM_PROVIDERS: { id: LLMProviderType; name: string }[] = [
   { id: 'anthropic', name: 'Anthropic' },
@@ -459,6 +460,8 @@ export default function SettingsPage() {
                 </p>
               )}
             </div>
+
+            <UsageSummary />
           </div>
 
         </div>

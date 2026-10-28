@@ -194,3 +194,4 @@ alter table ideas add column if not exists embedding_dim int;
 -- ─── See supabase/migrations/20261028_demo_readonly.sql and 20261028_rate_limits.sql ───
 -- (apply them after this file)
 -- (also apply supabase/migrations/20261029_search_quality.sql: HNSW, hybrid search, capped graph similarities)
+-- (also apply supabase/migrations/20261029_llm_usage.sql)

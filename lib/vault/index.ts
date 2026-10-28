@@ -5,6 +5,7 @@ import { createEmbeddingsProvider, EMBEDDING_DIM } from '@/lib/embeddings/provid
 import { buildIndexMd } from './index-md'
 import { findCandidates } from './retrieval'
 import { buildCapturePrompt, structureIdea } from './structure'
+import { recordUsage } from '@/lib/observability'
 import { UPDATE_OVERVIEW_SYSTEM_PROMPT } from './prompts'
 import { filterConnections, uniqueSlug } from './schema'
 import type { Idea, IdeaRow, VaultMeta, VaultMetaRow, LLMConfig, EmbeddingsConfig, CaptureIdeaResponse } from '@/types'
@@ -111,11 +112,20 @@ export async function regenerateOverview(userId: string, llmConfig: LLMConfig): 
     input += line
   }
 
-  const text = await createLLMProvider(llmConfig).complete(
-    `Ideas in the vault (most recently updated first):\n\n${input}`,
-    UPDATE_OVERVIEW_SYSTEM_PROMPT,
-    { maxTokens: OVERVIEW_MAX_OUTPUT_TOKENS }
-  )
+  const usage = { inputTokens: 0, outputTokens: 0 }
+  const started = performance.now()
+  let text: string
+  try {
+    text = await createLLMProvider(llmConfig).complete(
+      `Ideas in the vault (most recently updated first):\n\n${input}`,
+      UPDATE_OVERVIEW_SYSTEM_PROMPT,
+      { maxTokens: OVERVIEW_MAX_OUTPUT_TOKENS, onUsage: u => { usage.inputTokens += u.inputTokens; usage.outputTokens += u.outputTokens } }
+    )
+  } catch (err) {
+    await recordUsage(userId, { kind: 'overview', provider: llmConfig.provider, model: llmConfig.model, latencyMs: performance.now() - started, success: false, error: err instanceof Error ? err.message : String(err) })
+    throw err
+  }
+  await recordUsage(userId, { kind: 'overview', provider: llmConfig.provider, model: llmConfig.model, latencyMs: performance.now() - started, ...usage, success: true })
   const overviewMd = text.trim().slice(0, OVERVIEW_MAX_OUTPUT_CHARS)
 
   const { error: saveError } = await supabase.from('vault_meta').upsert({
@@ -162,18 +172,28 @@ export interface StoredEmbedding {
 /** Embeds text; returns null (and logs) on failure so capture never fails because of embeddings. */
 export async function tryEmbed(
   config: EmbeddingsConfig | undefined,
-  text: string
+  text: string,
+  userId?: string
 ): Promise<StoredEmbedding | null> {
   if (!config) return null
+  const started = performance.now()
+  const log = (success: boolean, error?: string) =>
+    userId
+      ? recordUsage(userId, { kind: 'embedding', provider: config.provider, model: config.model, latencyMs: performance.now() - started, success, error })
+      : Promise.resolve()
   try {
     const vector = await createEmbeddingsProvider(config).embed(text)
     if (vector.length !== EMBEDDING_DIM) {
-      console.error(`Embedding skipped: ${config.model} returned ${vector.length} dims, expected ${EMBEDDING_DIM}`)
+      const message = `${config.model} returned ${vector.length} dims, expected ${EMBEDDING_DIM}`
+      console.error(`Embedding skipped: ${message}`)
+      await log(false, message)
       return null
     }
+    await log(true)
     return { vector, model: config.model }
   } catch (err) {
     console.error('Embedding generation failed:', err)
+    await log(false, err instanceof Error ? err.message : String(err))
     return null
   }
 }
@@ -223,14 +243,25 @@ export async function captureIdea(
   const provider = createLLMProvider(llmConfig)
 
   // 0. Embed the raw note BEFORE saving: work after the response is not guaranteed to run on serverless.
-  const embedding = await tryEmbed(embeddingsConfig, rawThought)
+  const embedding = await tryEmbed(embeddingsConfig, rawThought, userId)
 
   // 1. Retrieve the ideas most related to the note (vector search, or tag/title match without embeddings)
   const { candidates, method } = await findCandidates(userId, rawThought, embedding?.vector ?? null, embedding?.model ?? null)
   console.info(`Capture: ${candidates.length} candidate connection(s) via ${method}`)
 
   // 2. Ask the LLM to structure the idea (validated, one retry), then check it against the vault
-  const { output: parsed } = await structureIdea(provider, buildCapturePrompt(candidates, rawThought))
+  const usage = { inputTokens: 0, outputTokens: 0 }
+  const llmStarted = performance.now()
+  let parsed
+  try {
+    ;({ output: parsed } = await structureIdea(provider, buildCapturePrompt(candidates, rawThought), {
+      onUsage: u => { usage.inputTokens += u.inputTokens; usage.outputTokens += u.outputTokens },
+    }))
+  } catch (err) {
+    await recordUsage(userId, { kind: 'capture', provider: llmConfig.provider, model: llmConfig.model, latencyMs: performance.now() - llmStarted, ...usage, success: false, error: err instanceof Error ? err.message : String(err) })
+    throw err
+  }
+  await recordUsage(userId, { kind: 'capture', provider: llmConfig.provider, model: llmConfig.model, latencyMs: performance.now() - llmStarted, ...usage, success: true })
 
   const existingSlugs = await getExistingSlugs(userId)
   const slug = uniqueSlug(parsed.slug, existingSlugs)

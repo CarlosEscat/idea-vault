@@ -4,6 +4,7 @@ import { decrypt } from '@/lib/encryption'
 import { createEmbeddingsProvider } from '@/lib/embeddings/providers'
 import { getEmbeddingsConfig, getEmbeddingStatus } from '@/lib/embeddings/config'
 import { isDemoUser } from '@/lib/auth/demo'
+import { recordUsage } from '@/lib/observability'
 import { rateLimited } from '@/lib/rate-limit'
 import { getUserIdeas } from '@/lib/vault'
 import { keywordSearch } from '@/lib/vault/retrieval'
@@ -49,7 +50,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No embeddings provider configured' }, { status: 400 })
     }
 
-    const queryEmbedding = await createEmbeddingsProvider(config).embed(query.trim())
+    const embedStarted = performance.now()
+    let queryEmbedding: number[]
+    try {
+      queryEmbedding = await createEmbeddingsProvider(config).embed(query.trim())
+    } catch (err) {
+      await recordUsage(user.id, { kind: 'search', provider: config.provider, model: config.model, latencyMs: performance.now() - embedStarted, success: false, error: err instanceof Error ? err.message : String(err) })
+      throw err
+    }
+    await recordUsage(user.id, { kind: 'search', provider: config.provider, model: config.model, latencyMs: performance.now() - embedStarted, success: true })
     const vector = `[${queryEmbedding.join(',')}]`
 
     // Only vectors produced by the CURRENT embeddings model are compared (p_model).
