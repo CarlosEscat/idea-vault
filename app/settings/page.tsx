@@ -59,7 +59,8 @@ export default function SettingsPage() {
   const [embError, setEmbError] = useState<string | null>(null)
 
   const [backfilling, setBackfilling] = useState(false)
-  const [backfillResult, setBackfillResult] = useState<{ total: number; done: number; failed: number } | null>(null)
+  const [backfillResult, setBackfillResult] = useState<{ total: number; done: number; failed: number; remaining: number } | null>(null)
+  const [embStatus, setEmbStatus] = useState<{ total: number; current: number; stale: number; missing: number; model: string } | null>(null)
   const [backfillError, setBackfillError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -68,6 +69,7 @@ export default function SettingsPage() {
         fetch('/api/llm'),
         fetch('/api/embeddings'),
       ])
+      refreshEmbStatus()
       const { data: llmData } = await llmRes.json()
       if (llmData) {
         setProvider(llmData.provider)
@@ -153,6 +155,7 @@ export default function SettingsPage() {
       if (data.error) throw new Error(data.error)
       setEmbSaved(true)
       setEmbHasExistingKey(true)
+      refreshEmbStatus()
     } catch (err) {
       setEmbError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
@@ -160,19 +163,35 @@ export default function SettingsPage() {
     }
   }
 
+  async function refreshEmbStatus() {
+    try {
+      const res = await fetch('/api/embeddings/status')
+      const json = await res.json()
+      setEmbStatus(json.data ?? null)
+    } catch { /* status is informational */ }
+  }
+
   async function handleBackfill() {
     setBackfilling(true)
     setBackfillResult(null)
     setBackfillError(null)
     try {
-      const res = await fetch('/api/embeddings/backfill', { method: 'POST' })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? 'Backfill failed')
-      setBackfillResult(json.data)
+      // Each request embeds one batch; keep going until nothing is left or a batch makes no progress.
+      let totals = { total: 0, done: 0, failed: 0, remaining: 0 }
+      for (;;) {
+        const res = await fetch('/api/embeddings/backfill', { method: 'POST' })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error ?? 'Backfill failed')
+        const r = json.data as typeof totals
+        totals = { total: totals.total + r.total, done: totals.done + r.done, failed: totals.failed + r.failed, remaining: r.remaining }
+        setBackfillResult(totals)
+        if (r.remaining === 0 || r.done === 0) break
+      }
     } catch (err) {
       setBackfillError(err instanceof Error ? err.message : 'Backfill failed')
     } finally {
       setBackfilling(false)
+      refreshEmbStatus()
     }
   }
 
@@ -405,18 +424,26 @@ export default function SettingsPage() {
               borderTop: '1px solid rgba(0,0,0,0.12)',
             }}>
               <div style={{ fontSize: 15, fontWeight: 700, marginBottom: '0.4rem' }}>
-                Backfill Missing Embeddings
+                Embeddings Index
               </div>
               <p style={{ fontSize: 13, color: 'var(--color-ink-muted)', marginBottom: '1rem', lineHeight: 1.6 }}>
-                Ideas captured before you configured embeddings have no vector. Run this to generate embeddings for all of them — required for semantic connections in the knowledge graph.
+                Ideas captured before you configured embeddings have no vector, and vectors from a different embeddings model cannot be compared with the current one. Run this to (re-)embed them — required for semantic search and connections in the knowledge graph.
               </p>
 
               {saveButton(
-                backfilling ? 'Backfilling…' : 'Backfill now',
+                backfilling ? 'Embedding…' : 'Embed missing & stale ideas',
                 handleBackfill,
                 backfilling || !embHasExistingKey,
               )}
 
+              {embStatus && (
+                <p style={{ marginTop: 8, fontSize: 12, color: embStatus.stale + embStatus.missing > 0 ? '#c0392b' : 'var(--color-ink-muted)' }}>
+                  {embStatus.current}/{embStatus.total} ideas indexed with {embStatus.model}
+                  {embStatus.stale > 0 && ` — ${embStatus.stale} indexed with a different or unknown model (excluded from search until re-embedded)`}
+                  {embStatus.missing > 0 && ` — ${embStatus.missing} have no embedding yet`}
+                  .
+                </p>
+              )}
               {backfillError && (
                 <p style={{ marginTop: 8, fontSize: 12, color: '#c0392b' }}>{backfillError}</p>
               )}
@@ -427,8 +454,8 @@ export default function SettingsPage() {
                   color: backfillResult.failed > 0 ? 'var(--color-ink-muted)' : '#004aac',
                 }}>
                   {backfillResult.total === 0
-                    ? 'All ideas already have embeddings.'
-                    : `Done — ${backfillResult.done}/${backfillResult.total} embedded${backfillResult.failed > 0 ? `, ${backfillResult.failed} failed` : ''}.`}
+                    ? 'All ideas are indexed with the current model.'
+                    : `${backfilling ? 'Working' : 'Done'} — ${backfillResult.done}/${backfillResult.total} embedded${backfillResult.failed > 0 ? `, ${backfillResult.failed} failed` : ''}${backfillResult.remaining > 0 ? `, ${backfillResult.remaining} remaining` : ''}.`}
                 </p>
               )}
             </div>

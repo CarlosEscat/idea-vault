@@ -50,6 +50,7 @@ export async function findCandidates(
   userId: string,
   rawThought: string,
   queryVector: number[] | null,
+  embeddingModel: string | null,
   k = CANDIDATE_K
 ): Promise<{ candidates: Candidate[]; method: CandidateMethod }> {
   const supabase = await createServerClientInstance()
@@ -60,6 +61,7 @@ export async function findCandidates(
       p_query_embedding: `[${queryVector.join(',')}]`,
       p_limit: k,
       p_threshold: VECTOR_THRESHOLD,
+      p_model: embeddingModel,
     })
     if (error) {
       console.error('Candidate vector search failed, falling back to keywords:', error)

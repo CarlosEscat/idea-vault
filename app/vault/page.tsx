@@ -15,6 +15,8 @@ export default function VaultPage() {
   const [loading, setLoading] = useState(true)
   const [semanticMode, setSemanticMode] = useState(false)
   const [semanticResults, setSemanticResults] = useState<(Idea & { similarity: number })[] | null>(null)
+  const [hybrid, setHybrid] = useState(false)
+  const [searchMeta, setSearchMeta] = useState<{ mode: string; stale?: number; missing?: number } | null>(null)
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
 
@@ -37,11 +39,12 @@ export default function VaultPage() {
       const res = await fetch('/api/vault/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: filter.trim() }),
+        body: JSON.stringify({ query: filter.trim(), mode: hybrid ? 'hybrid' : 'semantic' }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Search failed')
       setSemanticResults(json.data)
+      setSearchMeta(json.meta ?? null)
     } catch (err) {
       setSearchError(err instanceof Error ? err.message : 'Search failed')
     } finally {
@@ -168,6 +171,25 @@ export default function VaultPage() {
             >
               Semantics
             </button>
+            {semanticMode && (
+              <button
+                onClick={() => { setHybrid(h => !h); setSemanticResults(null) }}
+                title="Combine meaning-based search with keyword matching on titles and tags"
+                style={{
+                  padding: '10px 18px',
+                  fontSize: 13,
+                  border: hybrid ? '1.5px solid #004aac' : '1px solid rgba(0,0,0,0.15)',
+                  borderRadius: 'var(--radius-xl)',
+                  background: hybrid ? 'rgba(0,74,172,0.08)' : '#fff',
+                  color: hybrid ? '#004aac' : 'var(--color-ink-muted)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  fontWeight: hybrid ? 600 : 400,
+                }}
+              >
+                Hybrid
+              </button>
+            )}
             <button
               onClick={handleSearch}
               disabled={semanticMode && (!filter.trim() || searching)}
@@ -246,6 +268,13 @@ export default function VaultPage() {
             </div>
           )}
 
+          {semanticResults !== null && searchMeta && ((searchMeta.stale ?? 0) > 0 || (searchMeta.missing ?? 0) > 0) && (
+            <div style={{ fontSize: 12, color: 'var(--color-ink-muted)', textAlign: 'center', marginBottom: '1rem' }}>
+              {(searchMeta.stale ?? 0) + (searchMeta.missing ?? 0)} idea(s) are not indexed with your current embeddings model and are
+              excluded from search. Re-embed them in Settings.
+            </div>
+          )}
+
           {/* Results label */}
           <div style={{
             fontSize: 10,
@@ -257,7 +286,7 @@ export default function VaultPage() {
             margin: '0 auto 0.75rem',
           }}>
             {semanticResults !== null
-              ? `${semanticResults.length} semantic match${semanticResults.length !== 1 ? 'es' : ''} · "${filter}"`
+              ? `${semanticResults.length} ${searchMeta?.mode === 'hybrid' ? 'hybrid' : searchMeta?.mode === 'keyword' ? 'keyword' : 'semantic'} match${semanticResults.length !== 1 ? 'es' : ''} · "${filter}"`
               : `${filtered.length} idea${filtered.length !== 1 ? 's' : ''}`}
           </div>
 

@@ -4,6 +4,7 @@ import { getUserIdeas } from '@/lib/vault'
 import {
   compositeScore, directLinkScore, EDGE_THRESHOLD, pairKey, SEMANTIC_THRESHOLD,
 } from '@/lib/graph/scoring'
+import { getEmbeddingsConfig } from '@/lib/embeddings/config'
 import type { GraphData, GraphNode, GraphLink } from '@/types'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -27,10 +28,12 @@ export async function GET() {
     const ideaById = new Map(ideas.map(i => [i.id, i]))
 
     // Fetch pairwise semantic similarities from pgvector
+    const embeddingsConfig = await getEmbeddingsConfig(supabase, user.id)
     const semanticMap = new Map<string, number>()
     const { data: pairs } = await supabase.rpc('get_pairwise_similarities', {
       p_user_id: user.id,
       p_threshold: SEMANTIC_THRESHOLD,
+      p_model: embeddingsConfig?.model ?? null,
     }) as { data: { id_a: string; id_b: string; similarity: number }[] | null }
 
     if (pairs) {

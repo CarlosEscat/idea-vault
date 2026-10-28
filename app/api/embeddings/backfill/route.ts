@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server'
 import { createServerClientInstance } from '@/lib/supabase/server'
 import { decrypt } from '@/lib/encryption'
-import { createEmbeddingsProvider } from '@/lib/embeddings/providers'
-import type { EmbeddingsConfig, IdeaRow } from '@/types'
+import { createEmbeddingsProvider, EMBEDDING_DIM } from '@/lib/embeddings/providers'
+import { getEmbeddingsConfig, getEmbeddingStatus } from '@/lib/embeddings/config'
+import type { IdeaRow } from '@/types'
 import { demoWriteBlocked } from '@/lib/auth/demo'
 import { rateLimited } from '@/lib/rate-limit'
 
 export const maxDuration = 300
 
+/** Ideas embedded per request; the client calls again while `remaining` > 0. */
+const BATCH_SIZE = 50
+
+/**
+ * Embeds ideas that have no vector OR whose vector came from a different embeddings model than the
+ * one currently configured (so a model switch re-embeds everything, and search never mixes models).
+ */
 export async function POST() {
   try {
     const supabase = await createServerClientInstance()
@@ -23,34 +31,28 @@ export async function POST() {
     const limited = await rateLimited(supabase, 'embeddings')
     if (limited) return limited
 
-    // Load embeddings config
-    const { data: settings } = await supabase
-      .from('user_settings')
-      .select('embeddings_config_encrypted')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!settings?.embeddings_config_encrypted) {
+    const config = await getEmbeddingsConfig(supabase, user.id)
+    if (!config) {
       return NextResponse.json(
         { error: 'No embeddings provider configured — set one up in Settings first' },
         { status: 400 }
       )
     }
-
-    const config: EmbeddingsConfig = JSON.parse(decrypt(settings.embeddings_config_encrypted, user.id))
     const provider = createEmbeddingsProvider(config)
 
-    // Fetch all ideas without embeddings
+    const { data: pending, error: pendingError } = await supabase
+      .rpc('ideas_needing_embedding', { p_model: config.model, p_limit: BATCH_SIZE })
+    if (pendingError) throw pendingError
+    const ids = ((pending ?? []) as { id: string }[]).map(r => r.id)
+
     const { data: rows, error: fetchError } = await supabase
       .from('ideas')
       .select('id, title, summary_encrypted, content_encrypted')
       .eq('user_id', user.id)
-      .is('embedding', null)
-
+      .in('id', ids)
     if (fetchError) throw fetchError
 
     const ideas = (rows ?? []) as Pick<IdeaRow, 'id' | 'title' | 'summary_encrypted' | 'content_encrypted'>[]
-    const total = ideas.length
     let done = 0
     let failed = 0
 
@@ -58,11 +60,12 @@ export async function POST() {
       try {
         const summary = decrypt(idea.summary_encrypted, user.id)
         const content = decrypt(idea.content_encrypted, user.id)
-        const text = `${idea.title}\n\n${summary}\n\n${content}`
+        const embedding = await provider.embed(`${idea.title}\n\n${summary}\n\n${content}`)
+        if (embedding.length !== EMBEDDING_DIM) {
+          throw new Error(`${config.model} returned ${embedding.length} dims, expected ${EMBEDDING_DIM}`)
+        }
 
-        const embedding = await provider.embed(text)
-
-        await supabase
+        const { error } = await supabase
           .from('ideas')
           .update({
             embedding: `[${embedding.join(',')}]`,
@@ -70,7 +73,7 @@ export async function POST() {
             embedding_dim: embedding.length,
           })
           .eq('id', idea.id)
-
+        if (error) throw error
         done++
       } catch (err) {
         console.error(`Backfill failed for idea ${idea.id}:`, err)
@@ -78,7 +81,9 @@ export async function POST() {
       }
     }
 
-    return NextResponse.json({ data: { total, done, failed } })
+    const status = await getEmbeddingStatus(supabase, config.model)
+    const remaining = status ? status.stale + status.missing : 0
+    return NextResponse.json({ data: { total: ideas.length, done, failed, remaining } })
   } catch (err) {
     console.error('Backfill error:', err)
     return NextResponse.json({ error: 'Backfill failed' }, { status: 500 })

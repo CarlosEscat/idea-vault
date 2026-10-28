@@ -226,7 +226,7 @@ export async function captureIdea(
   const embedding = await tryEmbed(embeddingsConfig, rawThought)
 
   // 1. Retrieve the ideas most related to the note (vector search, or tag/title match without embeddings)
-  const { candidates, method } = await findCandidates(userId, rawThought, embedding?.vector ?? null)
+  const { candidates, method } = await findCandidates(userId, rawThought, embedding?.vector ?? null, embedding?.model ?? null)
   console.info(`Capture: ${candidates.length} candidate connection(s) via ${method}`)
 
   // 2. Ask the LLM to structure the idea (validated, one retry), then check it against the vault
