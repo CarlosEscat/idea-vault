@@ -61,9 +61,9 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
       display: 'flex',
       flexDirection: 'column',
       gap: 2,
-      background: 'linear-gradient(90deg, #c9fddc 0%, #95bbfe 100%)',
+      background: 'linear-gradient(160deg, #134E4A 0%, #0D9488 100%)',
       flexShrink: 0,
-      boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+      boxShadow: '0 20px 30px -10px rgba(19, 78, 74, 0.28), 0 10px 15px -5px rgba(19, 78, 74, 0.12)',
     }}>
       {/* Nav */}
       {navItems.map(item => {
@@ -77,8 +77,8 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
               padding: '7px 10px',
               borderRadius: 'var(--radius-md)',
               fontSize: 14,
-              color: active ? '#ffffff' : 'var(--color-ink)',
-              background: active ? '#004aac' : 'transparent',
+              color: active ? '#134E4A' : 'rgba(255,255,255,0.85)',
+              background: active ? '#CCFBF1' : 'transparent',
               fontWeight: active ? 600 : 400,
               cursor: 'pointer',
               transition: 'background 0.1s, color 0.1s',
@@ -97,11 +97,11 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
           fontSize: 11,
           padding: '6px 10px',
           borderRadius: 'var(--radius-md)',
-          background: 'rgba(255,255,255,0.55)',
-          color: 'var(--color-ink)',
+          background: 'rgba(255,255,255,0.15)',
+          color: 'rgba(255,255,255,0.9)',
           lineHeight: 1.4,
         }}>
-          Demo vault — read-only. <Link href="/auth/signup" style={{ color: '#004aac', fontWeight: 600 }}>Sign up</Link> to capture your own ideas.
+          Demo vault — read-only. <Link href="/auth/signup" style={{ color: '#CCFBF1', fontWeight: 600 }}>Sign up</Link> to capture your own ideas.
         </div>
       )}
 
@@ -113,7 +113,7 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
         padding: '7px 10px',
         borderRadius: 'var(--radius-md)',
         fontSize: 13,
-        color: 'var(--color-ink-faint)',
+        color: 'rgba(255,255,255,0.55)',
         background: 'transparent',
         border: 'none',
         cursor: 'pointer',
@@ -132,7 +132,7 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
         padding: '7px 10px',
         borderRadius: 'var(--radius-md)',
         fontSize: 13,
-        color: 'var(--color-ink-faint)',
+        color: 'rgba(255,255,255,0.55)',
         background: 'transparent',
         border: 'none',
         cursor: 'pointer',
@@ -147,7 +147,7 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
       {ideaCount !== undefined && (
         <div style={{
           fontSize: 11,
-          color: 'var(--color-ink-faint)',
+          color: 'rgba(255,255,255,0.4)',
           padding: '2px 10px 4px',
           letterSpacing: '0.2px',
         }}>

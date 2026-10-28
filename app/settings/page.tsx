@@ -207,10 +207,10 @@ export default function SettingsPage() {
           padding: '10px 16px',
           fontSize: 14,
           fontWeight: active ? 600 : 400,
-          border: active ? '2px solid #004aac' : 'none',
+          border: active ? '2px solid var(--color-accent)' : 'none',
           borderRadius: 'var(--radius-xl)',
-          background: active ? '#c9fddc' : '#fff',
-          color: active ? '#004aac' : 'var(--color-ink)',
+          background: active ? 'var(--color-accent-light)' : 'var(--color-surface)',
+          color: active ? 'var(--color-accent)' : 'var(--color-ink)',
           cursor: 'pointer',
           textAlign: 'left',
           boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
@@ -234,7 +234,7 @@ export default function SettingsPage() {
             fontWeight: 600,
             border: 'none',
             borderRadius: 'var(--radius-xl)',
-            background: '#004aac',
+            background: 'var(--color-accent)',
             color: '#fff',
             cursor: disabled ? 'not-allowed' : 'pointer',
             opacity: disabled ? 0.6 : 1,
@@ -252,7 +252,7 @@ export default function SettingsPage() {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      background: '#e9f2ff',
+      background: 'var(--color-paper)',
     }}>
       {/* Header */}
       <header style={{
@@ -261,8 +261,9 @@ export default function SettingsPage() {
         fontSize: 15,
         flexShrink: 0,
         letterSpacing: '-0.2px',
-        background: 'linear-gradient(90deg, #c9fddc 0%, #95bbfe 100%)',
-        boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+        background: 'linear-gradient(160deg, #134E4A 0%, #0D9488 100%)',
+        color: '#FFFFFF',
+        boxShadow: '0 4px 14px 0 rgba(20, 184, 166, 0.22)',
       }}>
         Idea Vault
       </header>
@@ -283,8 +284,8 @@ export default function SettingsPage() {
           flex: 1,
           margin: '30px 70px 30px 10px',
           borderRadius: 'var(--radius-xl)',
-          background: '#95bbfe',
-          boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+          background: 'var(--color-surface)',
+          boxShadow: '0 10px 25px -5px rgba(19, 78, 74, 0.09), 0 8px 10px -6px rgba(19, 78, 74, 0.04)',
           overflow: 'hidden',
           display: 'flex',
           minWidth: 0,
@@ -328,7 +329,7 @@ export default function SettingsPage() {
               <label style={sectionLabel}>
                 {provider === 'ollama' ? 'Server URL' : 'API KEY'}
                 {hasExistingKey && provider !== 'ollama' && (
-                  <span style={{ color: '#004aac', marginLeft: 8, fontWeight: 400, fontSize: 12 }}>✓ saved</span>
+                  <span style={{ color: 'var(--color-accent)', marginLeft: 8, fontWeight: 400, fontSize: 12 }}>✓ saved</span>
                 )}
               </label>
               {provider === 'ollama' ? (
@@ -394,7 +395,7 @@ export default function SettingsPage() {
               <label style={sectionLabel}>
                 {embProvider === 'ollama' ? 'Server URL' : 'API KEY'}
                 {embHasExistingKey && embProvider !== 'ollama' && (
-                  <span style={{ color: '#004aac', marginLeft: 8, fontWeight: 400, fontSize: 12 }}>✓ saved</span>
+                  <span style={{ color: 'var(--color-accent)', marginLeft: 8, fontWeight: 400, fontSize: 12 }}>✓ saved</span>
                 )}
               </label>
               {embProvider === 'ollama' ? (
@@ -452,7 +453,7 @@ export default function SettingsPage() {
                 <p style={{
                   marginTop: 8,
                   fontSize: 12,
-                  color: backfillResult.failed > 0 ? 'var(--color-ink-muted)' : '#004aac',
+                  color: backfillResult.failed > 0 ? 'var(--color-ink-muted)' : 'var(--color-accent)',
                 }}>
                   {backfillResult.total === 0
                     ? 'All ideas are indexed with the current model.'

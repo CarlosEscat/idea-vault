@@ -57,7 +57,7 @@ export default function GraphPage() {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      background: '#e9f2ff',
+      background: 'var(--color-paper)',
     }}>
       {/* Header */}
       <header style={{
@@ -66,8 +66,9 @@ export default function GraphPage() {
         fontSize: 15,
         flexShrink: 0,
         letterSpacing: '-0.2px',
-        background: 'linear-gradient(90deg, #c9fddc 0%, #95bbfe 100%)',
-        boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+        background: 'linear-gradient(160deg, #134E4A 0%, #0D9488 100%)',
+        color: '#FFFFFF',
+        boxShadow: '0 4px 14px 0 rgba(20, 184, 166, 0.22)',
       }}>
         Idea Vault
       </header>
@@ -99,9 +100,9 @@ export default function GraphPage() {
             flexBasis: 0,
             transition: 'flex-grow 0.3s ease',
             borderRadius: 'var(--radius-xl)',
-            background: '#c9fddc',
-            border: '1.5px solid #b4cbff',
-            boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            boxShadow: '0 10px 25px -5px rgba(19, 78, 74, 0.09), 0 8px 10px -6px rgba(19, 78, 74, 0.04)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -179,8 +180,8 @@ export default function GraphPage() {
             minHeight: overviewOpen ? 0 : 48,
             maxHeight: overviewOpen ? undefined : 48,
             borderRadius: 'var(--radius-xl)',
-            background: '#95bbfe',
-            boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+            background: 'var(--color-surface)',
+            boxShadow: '0 10px 25px -5px rgba(19, 78, 74, 0.09), 0 8px 10px -6px rgba(19, 78, 74, 0.04)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',

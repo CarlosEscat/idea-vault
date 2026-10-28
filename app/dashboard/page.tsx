@@ -70,7 +70,7 @@ export default function DashboardPage() {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      background: '#e9f2ff',
+      background: 'var(--color-paper)',
     }}>
       {/* Header */}
       <header style={{
@@ -79,8 +79,9 @@ export default function DashboardPage() {
         fontSize: 15,
         flexShrink: 0,
         letterSpacing: '-0.2px',
-        background: 'linear-gradient(90deg, #c9fddc 0%, #95bbfe 100%)',
-        boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+        background: 'linear-gradient(160deg, #134E4A 0%, #0D9488 100%)',
+        color: '#FFFFFF',
+        boxShadow: '0 4px 14px 0 rgba(20, 184, 166, 0.22)',
       }}>
         Idea Vault
       </header>
@@ -103,8 +104,8 @@ export default function DashboardPage() {
           overflow: 'auto',
           padding: '2rem 2.5rem',
           minWidth: 0,
-          boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
-          background: '#95bbfe',
+          boxShadow: '0 10px 25px -5px rgba(19, 78, 74, 0.09), 0 8px 10px -6px rgba(19, 78, 74, 0.04)',
+          background: 'var(--color-surface)',
         }}>
           {/* All content centered */}
           <div style={{ maxWidth: 580, margin: '0 auto' }}>
@@ -112,7 +113,7 @@ export default function DashboardPage() {
           {/* Date */}
           <div style={{
             fontSize: 11,
-            color: '#ffffff',
+            color: 'var(--color-ink-faint)',
             letterSpacing: '0.4px',
             textTransform: 'uppercase',
             marginBottom: '0.5rem',
@@ -139,7 +140,7 @@ export default function DashboardPage() {
               marginBottom: '1.5rem',
               border: '1px solid var(--color-border-strong)',
               borderRadius: 'var(--radius-md)',
-              background: 'var(--color-accent-light)',
+              background: 'var(--color-accent-subtle)',
               fontSize: 12,
             }}>
               Configure your AI provider in{' '}
@@ -168,7 +169,7 @@ export default function DashboardPage() {
               <>
                 <div style={{
                   fontSize: 11,
-                  color: '#ffffff',
+                  color: 'var(--color-ink-faint)',
                   letterSpacing: '0.4px',
                   textTransform: 'uppercase',
                   marginBottom: '0.75rem',

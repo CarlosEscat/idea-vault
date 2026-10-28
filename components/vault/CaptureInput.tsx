@@ -45,12 +45,9 @@ export default function CaptureInput({ providerLabel, onCapture }: CaptureInputP
     <div style={{ position: 'relative', marginBottom: '2rem' }}>
       {/* Card */}
       <div style={{
-        borderTop: '5px solid #c9fddc',
-        borderRight: '1.5px solid var(--color-border-strong)',
-        borderBottom: '1.5px solid var(--color-border-strong)',
-        borderLeft: '5px solid #c9fddc',
+        border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-lg)',
-        boxShadow: '5px 5px 0 0 #004aac',
+        boxShadow: '0 10px 25px -5px rgba(19, 78, 74, 0.09), 0 8px 10px -6px rgba(19, 78, 74, 0.04)',
         padding: '1.5rem 1.75rem',
         background: '#fff',
         position: 'relative',
@@ -105,7 +102,7 @@ export default function CaptureInput({ providerLabel, onCapture }: CaptureInputP
               width: 6,
               height: 6,
               borderRadius: '50%',
-              background: loading ? '#f59e0b' : 'var(--color-green)',
+              background: loading ? 'var(--color-warning)' : 'var(--color-accent)',
               display: 'inline-block',
               flexShrink: 0,
             }} />
@@ -125,8 +122,9 @@ export default function CaptureInput({ providerLabel, onCapture }: CaptureInputP
                 padding: '8px 22px',
                 borderRadius: 9999,
                 border: 'none',
-                background: thought.trim() && !loading ? '#004aac' : 'var(--color-paper-mid)',
+                background: thought.trim() && !loading ? 'var(--color-accent)' : 'var(--color-paper-mid)',
                 color: thought.trim() && !loading ? '#ffffff' : 'var(--color-ink-faint)',
+                boxShadow: thought.trim() && !loading ? '0 4px 14px 0 rgba(20, 184, 166, 0.38)' : 'none',
                 cursor: thought.trim() && !loading ? 'pointer' : 'not-allowed',
                 transition: 'background 0.15s, color 0.15s',
               }}

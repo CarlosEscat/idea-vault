@@ -29,15 +29,16 @@ export default function LoginPage() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
-    padding: '10px 16px',
+    padding: '12px 16px',
     fontSize: 14,
     fontFamily: 'var(--font-serif)',
-    border: 'none',
-    borderRadius: 'var(--radius-xl)',
+    border: '1px solid var(--color-border-strong)',
+    borderRadius: 'var(--radius-md)',
     background: '#fff',
     outline: 'none',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    color: 'var(--color-ink)',
     boxSizing: 'border-box',
+    transition: 'border-color 0.15s',
   }
 
   const labelStyle: React.CSSProperties = {
@@ -53,7 +54,7 @@ export default function LoginPage() {
       display: 'flex',
       flexDirection: 'column',
       minHeight: '100vh',
-      background: '#e9f2ff',
+      background: 'var(--color-paper)',
     }}>
       {/* Header */}
       <header style={{
@@ -62,8 +63,9 @@ export default function LoginPage() {
         fontSize: 15,
         flexShrink: 0,
         letterSpacing: '-0.2px',
-        background: 'linear-gradient(90deg, #c9fddc 0%, #95bbfe 100%)',
-        boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+        background: 'linear-gradient(160deg, #134E4A 0%, #0D9488 100%)',
+        color: '#FFFFFF',
+        boxShadow: '0 4px 14px 0 rgba(20, 184, 166, 0.22)',
       }}>
         Idea Vault
       </header>
@@ -77,10 +79,11 @@ export default function LoginPage() {
         padding: '2rem',
       }}>
         <div style={{
-          width: 340,
-          background: '#95bbfe',
-          borderRadius: 'var(--radius-xl)',
-          boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+          width: 360,
+          background: 'var(--color-surface)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--color-border)',
+          boxShadow: '0 25px 50px -12px rgba(19, 78, 74, 0.18)',
           padding: '2.25rem 2rem',
         }}>
           <h1 style={{
@@ -88,13 +91,14 @@ export default function LoginPage() {
             fontWeight: 700,
             textAlign: 'center',
             marginBottom: '0.3rem',
+            color: 'var(--color-ink)',
           }}>
             Welcome back
           </h1>
           <p style={{
             textAlign: 'center',
             fontSize: 13,
-            color: 'var(--color-ink-muted)',
+            color: 'var(--color-ink-faint)',
             marginBottom: '1.75rem',
           }}>
             sign in to your Vault
@@ -126,7 +130,7 @@ export default function LoginPage() {
             {error && (
               <div style={{
                 fontSize: 12,
-                color: '#c0392b',
+                color: 'var(--color-error)',
                 marginBottom: '1rem',
                 textAlign: 'center',
               }}>
@@ -143,12 +147,14 @@ export default function LoginPage() {
                 fontSize: 14,
                 fontWeight: 600,
                 border: 'none',
-                borderRadius: 'var(--radius-xl)',
-                background: '#004aac',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--color-accent)',
                 color: '#fff',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.6 : 1,
                 marginBottom: '1rem',
+                transition: 'background 0.15s, box-shadow 0.15s',
+                boxShadow: '0 4px 14px 0 rgba(20, 184, 166, 0.38)',
               }}
             >
               {loading ? 'Signing in...' : 'Sign in'}
@@ -165,11 +171,12 @@ export default function LoginPage() {
                 fontSize: 14,
                 fontWeight: 600,
                 opacity: demoLoading ? 0.6 : 1,
-                border: '1px solid #004aac',
-                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--color-border-strong)',
+                borderRadius: 'var(--radius-md)',
                 background: 'transparent',
-                color: '#004aac',
+                color: 'var(--color-ink)',
                 cursor: 'pointer',
+                transition: 'border-color 0.15s, background 0.15s',
               }}
             >
               {demoLoading ? 'Opening the demo…' : 'Try the demo (no signup)'}
@@ -179,10 +186,10 @@ export default function LoginPage() {
           <p style={{
             textAlign: 'center',
             fontSize: 13,
-            color: 'var(--color-ink-muted)',
+            color: 'var(--color-ink-faint)',
           }}>
             No Account?{' '}
-            <Link href="/auth/signup" style={{ color: '#004aac', fontWeight: 600, textDecoration: 'none' }}>
+            <Link href="/auth/signup" style={{ color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>
               Create one
             </Link>
           </p>

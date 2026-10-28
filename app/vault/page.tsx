@@ -83,7 +83,7 @@ export default function VaultPage() {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      background: '#e9f2ff',
+      background: 'var(--color-paper)',
     }}>
       {/* Header */}
       <header style={{
@@ -92,8 +92,9 @@ export default function VaultPage() {
         fontSize: 15,
         flexShrink: 0,
         letterSpacing: '-0.2px',
-        background: 'linear-gradient(90deg, #c9fddc 0%, #95bbfe 100%)',
-        boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
+        background: 'linear-gradient(160deg, #134E4A 0%, #0D9488 100%)',
+        color: '#FFFFFF',
+        boxShadow: '0 4px 14px 0 rgba(20, 184, 166, 0.22)',
       }}>
         Idea Vault
       </header>
@@ -116,8 +117,8 @@ export default function VaultPage() {
           overflow: 'auto',
           padding: '2rem 2.5rem',
           minWidth: 0,
-          boxShadow: '17px 16px 16px 2px rgba(0,0,0,0.26)',
-          background: '#95bbfe',
+          boxShadow: '0 10px 25px -5px rgba(19, 78, 74, 0.09), 0 8px 10px -6px rgba(19, 78, 74, 0.04)',
+          background: 'var(--color-surface)',
         }}>
           {/* Title */}
           <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: '0.25rem' }}>Vault</h1>
@@ -159,10 +160,10 @@ export default function VaultPage() {
               style={{
                 padding: '10px 18px',
                 fontSize: 13,
-                border: semanticMode ? '1.5px solid #004aac' : '1px solid rgba(0,0,0,0.15)',
+                border: semanticMode ? '1.5px solid var(--color-accent)' : '1px solid rgba(0,0,0,0.15)',
                 borderRadius: 'var(--radius-xl)',
                 background: semanticMode ? 'rgba(0,74,172,0.08)' : '#fff',
-                color: semanticMode ? '#004aac' : 'var(--color-ink-muted)',
+                color: semanticMode ? 'var(--color-accent)' : 'var(--color-ink-muted)',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 fontWeight: semanticMode ? 600 : 400,
@@ -178,10 +179,10 @@ export default function VaultPage() {
                 style={{
                   padding: '10px 18px',
                   fontSize: 13,
-                  border: hybrid ? '1.5px solid #004aac' : '1px solid rgba(0,0,0,0.15)',
+                  border: hybrid ? '1.5px solid var(--color-accent)' : '1px solid rgba(0,0,0,0.15)',
                   borderRadius: 'var(--radius-xl)',
                   background: hybrid ? 'rgba(0,74,172,0.08)' : '#fff',
-                  color: hybrid ? '#004aac' : 'var(--color-ink-muted)',
+                  color: hybrid ? 'var(--color-accent)' : 'var(--color-ink-muted)',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   fontWeight: hybrid ? 600 : 400,
@@ -199,7 +200,7 @@ export default function VaultPage() {
                 fontWeight: 600,
                 border: 'none',
                 borderRadius: 'var(--radius-xl)',
-                background: '#004aac',
+                background: 'var(--color-accent)',
                 color: '#fff',
                 cursor: (semanticMode && (!filter.trim() || searching)) ? 'not-allowed' : 'pointer',
                 opacity: (semanticMode && !filter.trim()) ? 0.5 : 1,
@@ -240,10 +241,10 @@ export default function VaultPage() {
                 style={{
                   padding: '5px 14px',
                   fontSize: 12,
-                  border: categoryFilter ? '1.5px solid #004aac' : '1px solid rgba(0,0,0,0.15)',
+                  border: categoryFilter ? '1.5px solid var(--color-accent)' : '1px solid rgba(0,0,0,0.15)',
                   borderRadius: 'var(--radius-xl)',
                   background: categoryFilter ? 'rgba(0,74,172,0.08)' : 'rgba(255,255,255,0.6)',
-                  color: categoryFilter ? '#004aac' : 'var(--color-ink-muted)',
+                  color: categoryFilter ? 'var(--color-accent)' : 'var(--color-ink-muted)',
                   outline: 'none',
                   cursor: 'pointer',
                   appearance: 'none',

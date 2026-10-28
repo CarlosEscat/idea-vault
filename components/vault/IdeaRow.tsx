@@ -21,7 +21,7 @@ export default function IdeaRow({ idea, index, onClick }: IdeaRowProps) {
         border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-lg)',
         cursor: 'pointer',
-        background: '#fff',
+        background: 'var(--color-surface)',
         transition: 'border-color 0.1s, background 0.1s',
       }}
       onMouseEnter={e => {
@@ -30,7 +30,7 @@ export default function IdeaRow({ idea, index, onClick }: IdeaRowProps) {
       }}
       onMouseLeave={e => {
         e.currentTarget.style.borderColor = 'var(--color-border)'
-        e.currentTarget.style.background = '#fff'
+        e.currentTarget.style.background = 'var(--color-surface)'
       }}
     >
       {/* Index */}
