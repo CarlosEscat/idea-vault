@@ -4,6 +4,8 @@ import { decrypt } from '@/lib/encryption'
 import { createEmbeddingsProvider } from '@/lib/embeddings/providers'
 import type { EmbeddingsConfig, IdeaRow } from '@/types'
 
+export const maxDuration = 300
+
 export async function POST() {
   try {
     const supabase = await createServerClientInstance()

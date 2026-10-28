@@ -98,19 +98,23 @@ export interface LLMConfig {
   baseUrl?: string         // for Ollama
 }
 
+export interface CompleteOptions {
+  maxTokens?: number
+}
+
 export interface LLMProvider {
-  complete(userPrompt: string, systemPrompt: string): Promise<string>
+  complete(userPrompt: string, systemPrompt: string, opts?: CompleteOptions): Promise<string>
 }
 
 export const LLM_MODELS: Record<LLMProviderType, string[]> = {
-  anthropic: ['claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'claude-haiku-4-5-20251001'],
+  anthropic: ['claude-sonnet-4-6', 'claude-opus-4-8', 'claude-haiku-4-5-20251001'],
   openai: ['gpt-4o', 'gpt-4o-mini', 'o3', 'o4-mini'],
   google: ['gemini-2.0-flash', 'gemini-2.5-pro', 'gemini-2.5-flash'],
   ollama: ['llama3.3', 'mistral', 'qwen2.5', 'deepseek-r1'],
 }
 
 export const LLM_DEFAULT_MODELS: Record<LLMProviderType, string> = {
-  anthropic: 'claude-sonnet-4-20250514',
+  anthropic: 'claude-sonnet-4-6',
   openai: 'gpt-4o',
   google: 'gemini-2.0-flash',
   ollama: 'llama3.3',

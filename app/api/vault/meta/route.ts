@@ -19,12 +19,13 @@ export async function GET() {
 
     if (error) throw error
 
-    if (!data?.overview_md_encrypted) {
-      return NextResponse.json({ data: { overview_md: null } })
-    }
+    const { count } = await supabase
+      .from('ideas')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
 
-    const overview_md = decrypt(data.overview_md_encrypted, user.id)
-    return NextResponse.json({ data: { overview_md } })
+    const overview_md = data?.overview_md_encrypted ? decrypt(data.overview_md_encrypted, user.id) : null
+    return NextResponse.json({ data: { overview_md: overview_md || null, idea_count: count ?? 0 } })
   } catch (err) {
     console.error('Vault meta fetch error:', err)
     return NextResponse.json({ error: 'Failed to fetch vault meta' }, { status: 500 })

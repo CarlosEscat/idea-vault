@@ -2,11 +2,7 @@ import { createServerClientInstance } from '@/lib/supabase/server'
 import { encrypt, decrypt } from '@/lib/encryption'
 import { createLLMProvider } from '@/lib/llm/providers'
 import { createEmbeddingsProvider } from '@/lib/embeddings/providers'
-import {
-  CAPTURE_IDEA_SYSTEM_PROMPT,
-  UPDATE_INDEX_SYSTEM_PROMPT,
-  UPDATE_OVERVIEW_SYSTEM_PROMPT,
-} from './prompts'
+import { CAPTURE_IDEA_SYSTEM_PROMPT, UPDATE_OVERVIEW_SYSTEM_PROMPT } from './prompts'
 import type { Idea, IdeaRow, VaultMeta, VaultMetaRow, LLMConfig, EmbeddingsConfig, CaptureIdeaResponse } from '@/types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -57,14 +53,82 @@ export async function getVaultMeta(userId: string): Promise<VaultMeta> {
   }
 }
 
-async function saveVaultMeta(meta: VaultMeta): Promise<void> {
+async function saveIndexMd(userId: string, indexMd: string): Promise<void> {
   const supabase = await createServerClientInstance()
-  await supabase.from('vault_meta').upsert({
-    user_id: meta.user_id,
-    index_md_encrypted: encrypt(meta.index_md, meta.user_id),
-    overview_md_encrypted: encrypt(meta.overview_md, meta.user_id),
+  // Partial upsert: leaves overview_md_encrypted untouched on conflict.
+  const { error } = await supabase.from('vault_meta').upsert({
+    user_id: userId,
+    index_md_encrypted: encrypt(indexMd, userId),
     updated_at: new Date().toISOString(),
   })
+  if (error) throw new Error(`Failed to save index: ${error.message}`)
+}
+
+/** Deterministic index.md, built from the database — no LLM call. */
+export async function rebuildIndexMd(userId: string): Promise<string> {
+  const supabase = await createServerClientInstance()
+  const { data, error } = await supabase
+    .from('ideas')
+    .select('slug, category, summary_encrypted')
+    .eq('user_id', userId)
+    .order('category')
+    .order('slug')
+  if (error) throw new Error(`Failed to build index: ${error.message}`)
+
+  const byCategory = new Map<string, string[]>()
+  for (const row of data ?? []) {
+    const line = `- [[${row.slug}]]: ${decrypt(row.summary_encrypted, userId)}`
+    byCategory.set(row.category, [...(byCategory.get(row.category) ?? []), line])
+  }
+  if (byCategory.size === 0) return '# Idea Vault Index\n\n*No ideas yet. Add your first thought!*'
+
+  const sections = [...byCategory.entries()].map(
+    ([category, lines]) => `## ${category[0].toUpperCase()}${category.slice(1)}\n${lines.join('\n')}`
+  )
+  const indexMd = `# Idea Vault Index\n\n${sections.join('\n\n')}`
+  await saveIndexMd(userId, indexMd)
+  return indexMd
+}
+
+// ─── Overview (on demand) ─────────────────────────────────────────────────────
+
+const OVERVIEW_MAX_IDEAS = 60
+const OVERVIEW_MAX_INPUT_CHARS = 12_000
+const OVERVIEW_MAX_OUTPUT_CHARS = 4_000
+const OVERVIEW_MAX_OUTPUT_TOKENS = 1_000
+
+export async function regenerateOverview(userId: string, llmConfig: LLMConfig): Promise<string> {
+  const supabase = await createServerClientInstance()
+  const { data, error } = await supabase
+    .from('ideas')
+    .select('title, category, tags, summary_encrypted')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+    .limit(OVERVIEW_MAX_IDEAS)
+  if (error) throw new Error(`Failed to load ideas: ${error.message}`)
+  if (!data?.length) throw new Error('No ideas to summarise yet')
+
+  let input = ''
+  for (const row of data) {
+    const line = `- ${row.title} [${row.category}; ${row.tags.join(', ')}]: ${decrypt(row.summary_encrypted, userId)}\n`
+    if (input.length + line.length > OVERVIEW_MAX_INPUT_CHARS) break
+    input += line
+  }
+
+  const text = await createLLMProvider(llmConfig).complete(
+    `Ideas in the vault (most recently updated first):\n\n${input}`,
+    UPDATE_OVERVIEW_SYSTEM_PROMPT,
+    { maxTokens: OVERVIEW_MAX_OUTPUT_TOKENS }
+  )
+  const overviewMd = text.trim().slice(0, OVERVIEW_MAX_OUTPUT_CHARS)
+
+  const { error: saveError } = await supabase.from('vault_meta').upsert({
+    user_id: userId,
+    overview_md_encrypted: encrypt(overviewMd, userId),
+    updated_at: new Date().toISOString(),
+  })
+  if (saveError) throw new Error(`Failed to save overview: ${saveError.message}`)
+  return overviewMd
 }
 
 // ─── Ideas ────────────────────────────────────────────────────────────────────
@@ -191,25 +255,8 @@ export async function captureIdea(
   // 5. Save the idea together with its embedding
   await saveIdea(idea, embedding)
 
-  // 6. Update index.md
-  const updatedIndex = await provider.complete(
-    `Current index:\n\n${vaultMeta.index_md}\n\n---\n\nNew idea to add:\nSlug: ${idea.slug}\nCategory: ${idea.category}\nSummary: ${idea.summary}`,
-    UPDATE_INDEX_SYSTEM_PROMPT
-  )
-
-  // 7. Update overview.md
-  const updatedOverview = await provider.complete(
-    `Current overview:\n\n${vaultMeta.overview_md}\n\n---\n\nNew idea just added:\n\n${idea.content}`,
-    UPDATE_OVERVIEW_SYSTEM_PROMPT
-  )
-
-  // 8. Save vault meta
-  await saveVaultMeta({
-    user_id: userId,
-    index_md: updatedIndex,
-    overview_md: updatedOverview,
-    updated_at: new Date().toISOString(),
-  })
+  // 6. Refresh index.md deterministically (no LLM call); overview.md is regenerated on demand
+  await rebuildIndexMd(userId)
 
   return {
     idea,

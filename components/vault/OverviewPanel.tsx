@@ -5,7 +5,10 @@ import ReactMarkdown from 'react-markdown'
 
 export default function OverviewPanel() {
   const [overviewMd, setOverviewMd] = useState<string | null>(null)
+  const [ideaCount, setIdeaCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
@@ -13,13 +16,29 @@ export default function OverviewPanel() {
       .then(r => r.json())
       .then(json => {
         if (json.data?.overview_md) setOverviewMd(json.data.overview_md)
+        setIdeaCount(json.data?.idea_count ?? 0)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
+  async function regenerate() {
+    setGenerating(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/vault/overview', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Failed to generate overview')
+      setOverviewMd(json.data.overview_md)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to generate overview')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   // Nothing to show — don't render the panel at all
-  if (!loading && !overviewMd) return null
+  if (!loading && !overviewMd && ideaCount === 0) return null
 
   return (
     <div style={{
@@ -76,6 +95,27 @@ export default function OverviewPanel() {
             }}>
               Vault overview
             </span>
+            {!loading && (
+              <button
+                onClick={regenerate}
+                disabled={generating}
+                style={{
+                  marginLeft: 12,
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  color: 'var(--color-ink-faint)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: generating ? 'default' : 'pointer',
+                  textDecoration: 'underline',
+                }}
+              >
+                {generating ? 'Generating…' : overviewMd ? 'Refresh' : 'Generate'}
+              </button>
+            )}
+            {error && (
+              <div style={{ fontSize: 11, color: 'var(--color-ink-faint)', marginTop: 4 }}>{error}</div>
+            )}
           </div>
 
           {/* Content */}
@@ -98,7 +138,7 @@ export default function OverviewPanel() {
                 lineHeight: 1.75,
                 color: 'var(--color-ink)',
               }}>
-                <ReactMarkdown>{overviewMd!}</ReactMarkdown>
+                {overviewMd ? <ReactMarkdown>{overviewMd}</ReactMarkdown> : 'No overview yet — generate one from your ideas.'}
               </div>
             )}
           </div>
