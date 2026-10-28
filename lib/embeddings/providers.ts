@@ -81,6 +81,7 @@ class OllamaEmbeddingsProvider implements EmbeddingsProvider {
       body: JSON.stringify({ model: this.model, prompt: text }),
     })
     const data = (await response.json()) as { embedding?: number[] }
+    if (!data.embedding) throw new Error('Ollama embeddings error: no embedding in response')
     return data.embedding
   }
 }
