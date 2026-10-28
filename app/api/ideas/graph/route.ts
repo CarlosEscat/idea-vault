@@ -1,38 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createServerClientInstance } from '@/lib/supabase/server'
 import { getUserIdeas } from '@/lib/vault'
-import type { GraphData, GraphNode, GraphLink, Idea } from '@/types'
-
-const EDGE_THRESHOLD = 0.25
-
-// ─── Scoring signals ──────────────────────────────────────────────────────────
-
-function directLinkScore(a: Idea, b: Idea): number {
-  const aLinksB = a.connections.includes(b.slug)
-  const bLinksA = b.connections.includes(a.slug)
-  return aLinksB && bLinksA ? 1.0 : (aLinksB || bLinksA ? 0.6 : 0)
-}
-
-function sourceOverlapScore(a: Idea, b: Idea): number {
-  const sharedTags = a.tags.filter(t => b.tags.includes(t)).length
-  const maxTags = Math.max(a.tags.length, b.tags.length, 1)
-  const tagScore = sharedTags / maxTags
-  const categoryBonus = a.category === b.category ? 0.2 : 0
-  return Math.min(tagScore + categoryBonus, 1.0)
-}
-
-function typeAffinityScore(a: Idea, b: Idea): number {
-  return a.category === b.category ? 0.3 : 0
-}
-
-function compositeScore(a: Idea, b: Idea, semanticSimilarity: number): number {
-  return (
-    directLinkScore(a, b) * 0.35 +
-    semanticSimilarity * 0.40 +
-    sourceOverlapScore(a, b) * 0.15 +
-    typeAffinityScore(a, b) * 0.10
-  )
-}
+import {
+  compositeScore, directLinkScore, EDGE_THRESHOLD, pairKey, SEMANTIC_THRESHOLD,
+} from '@/lib/graph/scoring'
+import type { GraphData, GraphNode, GraphLink } from '@/types'
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -58,7 +30,7 @@ export async function GET() {
     const semanticMap = new Map<string, number>()
     const { data: pairs } = await supabase.rpc('get_pairwise_similarities', {
       p_user_id: user.id,
-      p_threshold: 0.3,
+      p_threshold: SEMANTIC_THRESHOLD,
     }) as { data: { id_a: string; id_b: string; similarity: number }[] | null }
 
     if (pairs) {
@@ -78,10 +50,7 @@ export async function GET() {
       for (const connSlug of idea.connections) {
         const target = ideas.find(i => i.slug === connSlug)
         if (target) {
-          const key = idea.id < target.id
-            ? `${idea.id}:${target.id}`
-            : `${target.id}:${idea.id}`
-          candidatePairs.add(key)
+          candidatePairs.add(pairKey(idea.id, target.id))
         }
       }
     }
@@ -95,8 +64,7 @@ export async function GET() {
     if (ideas.length <= 100) {
       for (let i = 0; i < ideas.length; i++) {
         for (let j = i + 1; j < ideas.length; j++) {
-          const key = `${ideas[i].id}:${ideas[j].id}`
-          candidatePairs.add(key)
+          candidatePairs.add(pairKey(ideas[i].id, ideas[j].id))
         }
       }
     }
