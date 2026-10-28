@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { safeFetch } from '@/lib/url-guard'
 import type { EmbeddingsConfig, EmbeddingsProviderType } from '@/types'
 
 /** Dimension of the `ideas.embedding` column; providers are asked for (or must return) this many. */
@@ -74,12 +75,12 @@ class OllamaEmbeddingsProvider implements EmbeddingsProvider {
   }
 
   async embed(text: string): Promise<number[]> {
-    const response = await fetch(`${this.baseUrl}/api/embeddings`, {
+    const response = await safeFetch(`${this.baseUrl}/api/embeddings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: this.model, prompt: text }),
     })
-    const data = await response.json()
+    const data = (await response.json()) as { embedding?: number[] }
     return data.embedding
   }
 }

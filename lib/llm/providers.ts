@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { safeFetch } from '@/lib/url-guard'
 import type { CompleteOptions, LLMConfig, LLMProvider, LLMProviderType } from '@/types'
 
 // ─── Anthropic ────────────────────────────────────────────────────────────────
@@ -104,7 +105,7 @@ class OllamaProvider implements LLMProvider {
   }
 
   async complete(userPrompt: string, systemPrompt: string, opts?: CompleteOptions): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/api/chat`, {
+    const response = await safeFetch(`${this.baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -118,7 +119,7 @@ class OllamaProvider implements LLMProvider {
         ],
       }),
     })
-    const data = await response.json()
+    const data = (await response.json()) as { message?: { content?: string } }
     return data.message?.content ?? ''
   }
 }
