@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -20,6 +21,11 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [isDemo, setIsDemo] = useState(false)
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => setIsDemo(data.user?.app_metadata?.is_demo === true))
+  }, [])
 
   async function handleExport() {
     const res = await fetch('/api/export')
@@ -85,6 +91,19 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
       })}
 
       <div style={{ flex: 1 }} />
+
+      {isDemo && (
+        <div style={{
+          fontSize: 11,
+          padding: '6px 10px',
+          borderRadius: 'var(--radius-md)',
+          background: 'rgba(255,255,255,0.55)',
+          color: 'var(--color-ink)',
+          lineHeight: 1.4,
+        }}>
+          Demo vault — read-only. <Link href="/auth/signup" style={{ color: '#004aac', fontWeight: 600 }}>Sign up</Link> to capture your own ideas.
+        </div>
+      )}
 
       {/* Export */}
       <button onClick={handleExport} style={{

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClientInstance } from '@/lib/supabase/server'
 import { decrypt } from '@/lib/encryption'
 import { createEmbeddingsProvider } from '@/lib/embeddings/providers'
+import { isDemoUser } from '@/lib/auth/demo'
+import { getUserIdeas } from '@/lib/vault'
+import { keywordSearch } from '@/lib/vault/retrieval'
 import type { EmbeddingsConfig, IdeaRow } from '@/types'
 
 export const maxDuration = 30
@@ -26,6 +29,12 @@ export async function POST(req: NextRequest) {
       .select('embeddings_config_encrypted')
       .eq('user_id', user.id)
       .single()
+
+    // The shared demo account has no API key: fall back to keyword search over the seeded ideas.
+    if (!settings?.embeddings_config_encrypted && isDemoUser(user)) {
+      const ideas = await getUserIdeas(user.id)
+      return NextResponse.json({ data: keywordSearch(query, ideas), mode: 'keyword' })
+    }
 
     if (!settings?.embeddings_config_encrypted) {
       return NextResponse.json(

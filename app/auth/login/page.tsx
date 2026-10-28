@@ -154,6 +154,25 @@ export default function LoginPage() {
             </button>
           </form>
 
+          <form method="post" action="/api/demo" style={{ marginBottom: '1rem' }}>
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                padding: '11px',
+                fontSize: 14,
+                fontWeight: 600,
+                border: '1px solid #004aac',
+                borderRadius: 'var(--radius-xl)',
+                background: 'transparent',
+                color: '#004aac',
+                cursor: 'pointer',
+              }}
+            >
+              Try the demo (no signup)
+            </button>
+          </form>
+
           <p style={{
             textAlign: 'center',
             fontSize: 13,

@@ -1,7 +1,8 @@
 import { createServerClientInstance } from '@/lib/supabase/server'
 import { encrypt, decrypt } from '@/lib/encryption'
 import { createLLMProvider } from '@/lib/llm/providers'
-import { createEmbeddingsProvider } from '@/lib/embeddings/providers'
+import { createEmbeddingsProvider, EMBEDDING_DIM } from '@/lib/embeddings/providers'
+import { buildIndexMd } from './index-md'
 import { findCandidates, formatCandidates } from './retrieval'
 import { CAPTURE_IDEA_SYSTEM_PROMPT, UPDATE_OVERVIEW_SYSTEM_PROMPT } from './prompts'
 import {
@@ -84,17 +85,9 @@ export async function rebuildIndexMd(userId: string): Promise<string> {
     .order('slug')
   if (error) throw new Error(`Failed to build index: ${error.message}`)
 
-  const byCategory = new Map<string, string[]>()
-  for (const row of data ?? []) {
-    const line = `- [[${row.slug}]]: ${decrypt(row.summary_encrypted, userId)}`
-    byCategory.set(row.category, [...(byCategory.get(row.category) ?? []), line])
-  }
-  if (byCategory.size === 0) return '# Idea Vault Index\n\n*No ideas yet. Add your first thought!*'
-
-  const sections = [...byCategory.entries()].map(
-    ([category, lines]) => `## ${category[0].toUpperCase()}${category.slice(1)}\n${lines.join('\n')}`
+  const indexMd = buildIndexMd(
+    (data ?? []).map(r => ({ slug: r.slug, category: r.category, summary: decrypt(r.summary_encrypted, userId) }))
   )
-  const indexMd = `# Idea Vault Index\n\n${sections.join('\n\n')}`
   await saveIndexMd(userId, indexMd)
   return indexMd
 }
@@ -166,8 +159,6 @@ export async function getIdeaBySlug(userId: string, slug: string): Promise<Idea 
   if (error || !data) return null
   return decryptIdeaRow(data as IdeaRow, userId)
 }
-
-export const EMBEDDING_DIM = 768
 
 export interface StoredEmbedding {
   vector: number[]

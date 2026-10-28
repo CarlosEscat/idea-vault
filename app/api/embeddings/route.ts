@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClientInstance } from '@/lib/supabase/server'
 import { encrypt, decrypt } from '@/lib/encryption'
 import type { EmbeddingsConfig } from '@/types'
+import { demoWriteBlocked } from '@/lib/auth/demo'
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,6 +12,9 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const blocked = demoWriteBlocked(user)
+    if (blocked) return blocked
 
     const config: EmbeddingsConfig = await req.json()
 

@@ -1,6 +1,9 @@
 import OpenAI from 'openai'
 import type { EmbeddingsConfig, EmbeddingsProviderType } from '@/types'
 
+/** Dimension of the `ideas.embedding` column; providers are asked for (or must return) this many. */
+export const EMBEDDING_DIM = 768
+
 export interface EmbeddingsProvider {
   embed(text: string): Promise<number[]>
 }

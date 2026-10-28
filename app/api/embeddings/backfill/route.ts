@@ -3,6 +3,7 @@ import { createServerClientInstance } from '@/lib/supabase/server'
 import { decrypt } from '@/lib/encryption'
 import { createEmbeddingsProvider } from '@/lib/embeddings/providers'
 import type { EmbeddingsConfig, IdeaRow } from '@/types'
+import { demoWriteBlocked } from '@/lib/auth/demo'
 
 export const maxDuration = 300
 
@@ -14,6 +15,9 @@ export async function POST() {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const blocked = demoWriteBlocked(user)
+    if (blocked) return blocked
 
     // Load embeddings config
     const { data: settings } = await supabase

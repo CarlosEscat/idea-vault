@@ -4,6 +4,7 @@ import { captureIdea } from '@/lib/vault'
 import { CaptureValidationError } from '@/lib/vault/schema'
 import { decrypt } from '@/lib/encryption'
 import type { LLMConfig, EmbeddingsConfig, CaptureIdeaRequest } from '@/types'
+import { demoWriteBlocked } from '@/lib/auth/demo'
 
 export const maxDuration = 60
 
@@ -15,6 +16,9 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const blocked = demoWriteBlocked(user)
+    if (blocked) return blocked
 
     const body: CaptureIdeaRequest = await req.json()
 

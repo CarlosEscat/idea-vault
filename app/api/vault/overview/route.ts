@@ -3,6 +3,7 @@ import { createServerClientInstance } from '@/lib/supabase/server'
 import { regenerateOverview } from '@/lib/vault'
 import { decrypt } from '@/lib/encryption'
 import type { LLMConfig } from '@/types'
+import { demoWriteBlocked } from '@/lib/auth/demo'
 
 export const maxDuration = 60
 
@@ -11,6 +12,8 @@ export async function POST() {
     const supabase = await createServerClientInstance()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const blocked = demoWriteBlocked(user)
+    if (blocked) return blocked
 
     const { data: settings } = await supabase
       .from('user_settings')

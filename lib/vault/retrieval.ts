@@ -101,3 +101,21 @@ export function formatCandidates(candidates: Candidate[]): string {
     .map(c => `- ${c.slug} | ${c.title} | ${c.category} | ${c.tags.join(', ')}\n  ${c.summary}`)
     .join('\n')
 }
+
+/** Plain keyword search over decrypted ideas; score = share of query words found. Used where no embeddings key exists (demo). */
+export function keywordSearch<T extends { title: string; summary: string; content: string; tags: string[] }>(
+  query: string,
+  ideas: T[],
+  limit = 12
+): (T & { similarity: number })[] {
+  const q = [...new Set(query.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 3))]
+  if (q.length === 0) return []
+  return ideas
+    .map(idea => {
+      const haystack = `${idea.title} ${idea.tags.join(' ')} ${idea.summary} ${idea.content}`.toLowerCase()
+      return { ...idea, similarity: q.filter(w => haystack.includes(w)).length / q.length }
+    })
+    .filter(i => i.similarity > 0)
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, limit)
+}

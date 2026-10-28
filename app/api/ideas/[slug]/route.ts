@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClientInstance } from '@/lib/supabase/server'
 import { encrypt, decrypt } from '@/lib/encryption'
 import type { IdeaRow } from '@/types'
+import { demoWriteBlocked } from '@/lib/auth/demo'
 
 export async function PATCH(
   req: NextRequest,
@@ -15,6 +16,9 @@ export async function PATCH(
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const blocked = demoWriteBlocked(user)
+    if (blocked) return blocked
 
     const body = await req.json() as {
       title?: string
@@ -106,6 +110,9 @@ export async function DELETE(
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const blocked = demoWriteBlocked(user)
+    if (blocked) return blocked
 
     const { error } = await supabase
       .from('ideas')
