@@ -94,9 +94,43 @@ export async function getIdeaBySlug(userId: string, slug: string): Promise<Idea 
   return decryptIdeaRow(data as IdeaRow, userId)
 }
 
-async function saveIdea(idea: Idea): Promise<void> {
+export const EMBEDDING_DIM = 768
+
+export interface StoredEmbedding {
+  vector: number[]
+  model: string
+}
+
+/** Embeds text; returns null (and logs) on failure so capture never fails because of embeddings. */
+export async function tryEmbed(
+  config: EmbeddingsConfig | undefined,
+  text: string
+): Promise<StoredEmbedding | null> {
+  if (!config) return null
+  try {
+    const vector = await createEmbeddingsProvider(config).embed(text)
+    if (vector.length !== EMBEDDING_DIM) {
+      console.error(`Embedding skipped: ${config.model} returned ${vector.length} dims, expected ${EMBEDDING_DIM}`)
+      return null
+    }
+    return { vector, model: config.model }
+  } catch (err) {
+    console.error('Embedding generation failed:', err)
+    return null
+  }
+}
+
+export function embeddingColumns(e: StoredEmbedding) {
+  return {
+    embedding: `[${e.vector.join(',')}]`,
+    embedding_model: e.model,
+    embedding_dim: e.vector.length,
+  }
+}
+
+async function saveIdea(idea: Idea, embedding: StoredEmbedding | null): Promise<void> {
   const supabase = await createServerClientInstance()
-  await supabase.from('ideas').upsert({
+  const { error } = await supabase.from('ideas').upsert({
     id: idea.id,
     user_id: idea.user_id,
     slug: idea.slug,
@@ -108,7 +142,9 @@ async function saveIdea(idea: Idea): Promise<void> {
     connections: idea.connections,
     is_favorite: idea.is_favorite,
     updated_at: new Date().toISOString(),
+    ...(embedding ? embeddingColumns(embedding) : {}),
   })
+  if (error) throw new Error(`Failed to save idea: ${error.message}`)
 }
 
 // ─── Capture Flow ─────────────────────────────────────────────────────────────
@@ -120,6 +156,9 @@ export async function captureIdea(
   embeddingsConfig?: EmbeddingsConfig
 ): Promise<CaptureIdeaResponse> {
   const provider = createLLMProvider(llmConfig)
+
+  // 0. Embed the raw note BEFORE saving: work after the response is not guaranteed to run on serverless.
+  const embedding = await tryEmbed(embeddingsConfig, rawThought)
 
   // 1. Get current vault state
   const vaultMeta = await getVaultMeta(userId)
@@ -149,23 +188,8 @@ export async function captureIdea(
     updated_at: new Date().toISOString(),
   }
 
-  // 5. Save the idea
-  await saveIdea(idea)
-
-  // 5a. Generate and store embedding (fire-and-forget — doesn't block the response)
-  if (embeddingsConfig) {
-    const embeddingsProvider = createEmbeddingsProvider(embeddingsConfig)
-    const textToEmbed = `${idea.title}\n\n${idea.summary}\n\n${idea.content}`
-    embeddingsProvider.embed(textToEmbed).then(async (embedding) => {
-      const supabase = await createServerClientInstance()
-      await supabase
-        .from('ideas')
-        .update({ embedding: `[${embedding.join(',')}]` })
-        .eq('id', idea.id)
-    }).catch(err => {
-      console.error('Embedding generation failed:', err)
-    })
-  }
+  // 5. Save the idea together with its embedding
+  await saveIdea(idea, embedding)
 
   // 6. Update index.md
   const updatedIndex = await provider.complete(

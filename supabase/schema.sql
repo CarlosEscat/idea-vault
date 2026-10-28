@@ -186,3 +186,7 @@ as $$
     and b.embedding is not null
     and (1 - (a.embedding <=> b.embedding)) > p_threshold;
 $$;
+
+-- ─── Embedding metadata (see supabase/migrations/20261028_embedding_metadata.sql) ─
+alter table ideas add column if not exists embedding_model text;
+alter table ideas add column if not exists embedding_dim int;

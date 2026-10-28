@@ -54,7 +54,11 @@ export async function POST() {
 
         await supabase
           .from('ideas')
-          .update({ embedding: `[${embedding.join(',')}]` })
+          .update({
+            embedding: `[${embedding.join(',')}]`,
+            embedding_model: config.model,
+            embedding_dim: embedding.length,
+          })
           .eq('id', idea.id)
 
         done++
