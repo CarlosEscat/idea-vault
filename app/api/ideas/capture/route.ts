@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClientInstance } from '@/lib/supabase/server'
 import { captureIdea } from '@/lib/vault'
+import { CaptureValidationError } from '@/lib/vault/schema'
 import { decrypt } from '@/lib/encryption'
 import type { LLMConfig, EmbeddingsConfig, CaptureIdeaRequest } from '@/types'
 
@@ -45,6 +46,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ data: result })
   } catch (err) {
     console.error('Capture idea error:', err)
+    if (err instanceof CaptureValidationError) {
+      return NextResponse.json({ error: `The AI model returned an unusable response. Please try again. (${err.message})` }, { status: 502 })
+    }
     return NextResponse.json({ error: 'Failed to capture idea' }, { status: 500 })
   }
 }

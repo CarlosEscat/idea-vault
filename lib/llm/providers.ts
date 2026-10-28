@@ -20,9 +20,21 @@ class AnthropicProvider implements LLMProvider {
       max_tokens: opts?.maxTokens ?? 4096,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
+      ...(opts?.jsonSchema
+        ? {
+            tools: [{
+              name: 'respond',
+              description: 'Return the structured response.',
+              input_schema: opts.jsonSchema as Anthropic.Tool.InputSchema,
+            }],
+            tool_choice: { type: 'tool' as const, name: 'respond' },
+          }
+        : {}),
     })
-    const block = response.content[0]
-    return block.type === 'text' ? block.text : ''
+    const toolBlock = response.content.find(b => b.type === 'tool_use')
+    if (toolBlock?.type === 'tool_use') return JSON.stringify(toolBlock.input)
+    const block = response.content.find(b => b.type === 'text')
+    return block?.type === 'text' ? block.text : ''
   }
 }
 
@@ -41,6 +53,7 @@ class OpenAIProvider implements LLMProvider {
     const response = await this.client.chat.completions.create({
       model: this.model,
       ...(opts?.maxTokens ? { max_completion_tokens: opts.maxTokens } : {}),
+      ...(opts?.jsonSchema ? { response_format: { type: 'json_object' as const } } : {}),
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -65,7 +78,14 @@ class GoogleProvider implements LLMProvider {
     const genModel = this.client.getGenerativeModel({
       model: this.model,
       systemInstruction: systemPrompt,
-      ...(opts?.maxTokens ? { generationConfig: { maxOutputTokens: opts.maxTokens } } : {}),
+      ...(opts?.maxTokens || opts?.jsonSchema
+        ? {
+            generationConfig: {
+              ...(opts.maxTokens ? { maxOutputTokens: opts.maxTokens } : {}),
+              ...(opts.jsonSchema ? { responseMimeType: 'application/json' } : {}),
+            },
+          }
+        : {}),
     })
     const result = await genModel.generateContent(userPrompt)
     return result.response.text()
@@ -90,6 +110,7 @@ class OllamaProvider implements LLMProvider {
       body: JSON.stringify({
         model: this.model,
         stream: false,
+        ...(opts?.jsonSchema ? { format: 'json' } : {}),
         ...(opts?.maxTokens ? { options: { num_predict: opts.maxTokens } } : {}),
         messages: [
           { role: 'system', content: systemPrompt },

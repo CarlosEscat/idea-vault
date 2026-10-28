@@ -100,6 +100,8 @@ export interface LLMConfig {
 
 export interface CompleteOptions {
   maxTokens?: number
+  /** JSON Schema for the response; providers use tool use / JSON mode where supported. */
+  jsonSchema?: Record<string, unknown>
 }
 
 export interface LLMProvider {
