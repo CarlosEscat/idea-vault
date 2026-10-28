@@ -98,7 +98,15 @@ export interface LLMConfig {
   baseUrl?: string         // for Ollama
 }
 
+export interface TokenUsage {
+  inputTokens: number
+  outputTokens: number
+}
+
 export interface CompleteOptions {
+  /** Called once per request with the provider-reported token counts (when available). */
+  onUsage?: (usage: TokenUsage) => void
+
   maxTokens?: number
   /** JSON Schema for the response; providers use tool use / JSON mode where supported. */
   jsonSchema?: Record<string, unknown>

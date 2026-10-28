@@ -32,6 +32,7 @@ class AnthropicProvider implements LLMProvider {
           }
         : {}),
     })
+    opts?.onUsage?.({ inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens })
     const toolBlock = response.content.find(b => b.type === 'tool_use')
     if (toolBlock?.type === 'tool_use') return JSON.stringify(toolBlock.input)
     const block = response.content.find(b => b.type === 'text')
@@ -60,6 +61,9 @@ class OpenAIProvider implements LLMProvider {
         { role: 'user', content: userPrompt },
       ],
     })
+    if (response.usage) {
+      opts?.onUsage?.({ inputTokens: response.usage.prompt_tokens, outputTokens: response.usage.completion_tokens })
+    }
     return response.choices[0]?.message?.content ?? ''
   }
 }
@@ -89,6 +93,8 @@ class GoogleProvider implements LLMProvider {
         : {}),
     })
     const result = await genModel.generateContent(userPrompt)
+    const usage = result.response.usageMetadata
+    if (usage) opts?.onUsage?.({ inputTokens: usage.promptTokenCount, outputTokens: usage.candidatesTokenCount })
     return result.response.text()
   }
 }
@@ -119,7 +125,12 @@ class OllamaProvider implements LLMProvider {
         ],
       }),
     })
-    const data = (await response.json()) as { message?: { content?: string } }
+    const data = (await response.json()) as {
+      message?: { content?: string }
+      prompt_eval_count?: number
+      eval_count?: number
+    }
+    opts?.onUsage?.({ inputTokens: data.prompt_eval_count ?? 0, outputTokens: data.eval_count ?? 0 })
     return data.message?.content ?? ''
   }
 }

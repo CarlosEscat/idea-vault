@@ -10,7 +10,8 @@
     "seed:demo": "tsx --env-file=.env.local scripts/seed-demo.ts",
     "migrate:encryption": "tsx --env-file=.env.local scripts/migrate-encryption.ts",
     "test": "vitest run",
-    "test:rls": "RLS_TEST=1 tsx --env-file=.env.local node_modules/vitest/vitest.mjs run tests/rls.test.ts"
+    "test:rls": "RLS_TEST=1 tsx --env-file=.env.local node_modules/vitest/vitest.mjs run tests/rls.test.ts",
+    "eval": "tsx --env-file-if-exists=.env.local evals/run.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",

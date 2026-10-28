@@ -22,6 +22,7 @@ export type CaptureLLMOutput = z.infer<typeof CaptureLLMOutputSchema>
 export const CAPTURE_JSON_SCHEMA = z.toJSONSchema(CaptureLLMOutputSchema, { io: 'input' }) as Record<string, unknown>
 
 export class CaptureValidationError extends Error {
+  attempts?: { raw: string; error: string | null; latencyMs: number }[]
   constructor(message: string) {
     super(message)
     this.name = 'CaptureValidationError'
