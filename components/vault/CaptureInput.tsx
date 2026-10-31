@@ -41,10 +41,13 @@ export default function CaptureInput({ providerLabel, onCapture }: CaptureInputP
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
   const interimRef = useRef('')
 
-  const speechSupported = typeof window !== 'undefined' &&
-    !!(window.SpeechRecognition || window.webkitSpeechRecognition)
+  const [speechSupported, setSpeechSupported] = useState(false)
 
   useEffect(() => {
+    setSpeechSupported(!!(
+      (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition ||
+      (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
+    ))
     return () => { recognitionRef.current?.stop() }
   }, [])
 
