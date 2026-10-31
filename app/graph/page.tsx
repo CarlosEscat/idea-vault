@@ -24,7 +24,7 @@ export default function GraphPage() {
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [overviewMd, setOverviewMd] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [overviewOpen, setOverviewOpen] = useState(true)
+  const [overviewOpen, setOverviewOpen] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -57,7 +57,7 @@ export default function GraphPage() {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      background: 'var(--color-paper)',
+      background: '#ffffff',
     }}>
       {/* Header */}
       <header style={{
