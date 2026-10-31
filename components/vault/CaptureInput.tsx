@@ -1,7 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { CaptureIdeaResponse } from '@/types'
+
+// Web Speech API types
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList
+  resultIndex: number
+}
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string
+}
+interface SpeechRecognitionInstance extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start(): void
+  stop(): void
+  onresult: ((e: SpeechRecognitionEvent) => void) | null
+  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null
+  onend: (() => void) | null
+}
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognitionInstance
+    webkitSpeechRecognition?: new () => SpeechRecognitionInstance
+  }
+}
 
 interface CaptureInputProps {
   providerLabel: string
@@ -12,9 +37,61 @@ export default function CaptureInput({ providerLabel, onCapture }: CaptureInputP
   const [thought, setThought] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [listening, setListening] = useState(false)
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
+  const interimRef = useRef('')
+
+  const speechSupported = typeof window !== 'undefined' &&
+    !!(window.SpeechRecognition || window.webkitSpeechRecognition)
+
+  useEffect(() => {
+    return () => { recognitionRef.current?.stop() }
+  }, [])
+
+  function toggleListening() {
+    if (listening) {
+      recognitionRef.current?.stop()
+      return
+    }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) return
+
+    const rec = new SR()
+    rec.continuous = true
+    rec.interimResults = true
+    rec.lang = 'en-US'
+
+    rec.onresult = (e) => {
+      let interim = ''
+      let final = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript
+        if (e.results[i].isFinal) final += t
+        else interim += t
+      }
+      interimRef.current = interim
+      if (final) {
+        setThought(prev => (prev ? prev + ' ' : '') + final.trim())
+        interimRef.current = ''
+      }
+    }
+
+    rec.onerror = (e) => {
+      if (e.error !== 'no-speech') setError(`Mic error: ${e.error}`)
+      setListening(false)
+    }
+
+    rec.onend = () => setListening(false)
+
+    recognitionRef.current = rec
+    rec.start()
+    setListening(true)
+  }
 
   async function handleCapture() {
     if (!thought.trim() || loading) return
+    recognitionRef.current?.stop()
     setLoading(true)
     setError(null)
 
@@ -53,7 +130,7 @@ export default function CaptureInput({ providerLabel, onCapture }: CaptureInputP
         position: 'relative',
       }}>
         <textarea
-          value={thought}
+          value={thought + (listening && interimRef.current ? ' ' + interimRef.current : '')}
           onChange={e => setThought(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Drop a raw thought here — a half-formed idea, a connection you noticed, a question you can't shake..."
@@ -110,6 +187,44 @@ export default function CaptureInput({ providerLabel, onCapture }: CaptureInputP
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {speechSupported && (
+              <button
+                onClick={toggleListening}
+                disabled={loading}
+                title={listening ? 'Stop recording' : 'Speak your idea'}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: '50%',
+                  border: listening ? '2px solid var(--color-accent)' : '1px solid var(--color-border)',
+                  background: listening ? 'rgba(20,184,166,0.08)' : 'transparent',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'border 0.15s, background 0.15s',
+                  position: 'relative',
+                }}
+              >
+                {listening && (
+                  <span style={{
+                    position: 'absolute',
+                    inset: -4,
+                    borderRadius: '50%',
+                    border: '2px solid var(--color-accent)',
+                    opacity: 0.4,
+                    animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite',
+                  }} />
+                )}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={listening ? 'var(--color-accent)' : 'var(--color-ink-faint)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="2" width="6" height="12" rx="3" />
+                  <path d="M5 10a7 7 0 0 0 14 0" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                  <line x1="9" y1="22" x2="15" y2="22" />
+                </svg>
+              </button>
+            )}
             <span style={{ fontSize: 11, color: 'var(--color-ink-faint)' }}>
               ⌘↵ to capture
             </span>
