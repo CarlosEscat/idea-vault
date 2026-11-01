@@ -4,6 +4,29 @@ import { useEffect, useRef, useCallback } from 'react'
 import * as d3 from 'd3'
 import type { GraphData, GraphNode, GraphLink } from '@/types'
 
+const POSITIONS_KEY = 'idea-vault-graph-positions'
+
+function loadPositions(): Record<string, { x: number; y: number }> {
+  try {
+    const raw = localStorage.getItem(POSITIONS_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+function savePositions(nodes: GraphNode[]) {
+  try {
+    const positions: Record<string, { x: number; y: number }> = {}
+    nodes.forEach(n => {
+      if (n.x != null && n.y != null) positions[n.id] = { x: n.x, y: n.y }
+    })
+    localStorage.setItem(POSITIONS_KEY, JSON.stringify(positions))
+  } catch {
+    // localStorage unavailable
+  }
+}
+
 function lighten(hex: string, amount: number): string {
   const n = parseInt(hex.slice(1), 16)
   const r = Math.min(255, Math.round(((n >> 16) & 0xff) + (255 - ((n >> 16) & 0xff)) * amount))
@@ -82,6 +105,18 @@ export default function KnowledgeGraph({ data, onNodeClick }: KnowledgeGraphProp
     })
     const nodeRadius = (d: GraphNode) => 10 + (degree[d.id] ?? 0) * 3.5
 
+    // Restore saved positions — pin nodes that have been placed before
+    const saved = loadPositions()
+    data.nodes.forEach(n => {
+      if (saved[n.id]) {
+        n.x = saved[n.id].x
+        n.y = saved[n.id].y
+        n.fx = saved[n.id].x
+        n.fy = saved[n.id].y
+      }
+    })
+    const allPinned = data.nodes.length > 0 && data.nodes.every(n => n.fx != null)
+
     // Force simulation
     const simulation = d3.forceSimulation<GraphNode>(data.nodes)
       .force('link', d3.forceLink<GraphNode, GraphLink>(data.links)
@@ -90,6 +125,7 @@ export default function KnowledgeGraph({ data, onNodeClick }: KnowledgeGraphProp
       .force('charge', d3.forceManyBody().strength(-500))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(d => nodeRadius(d as GraphNode) + 18))
+
 
     // Curved links
     const link = g.append('g')
@@ -162,7 +198,7 @@ export default function KnowledgeGraph({ data, onNodeClick }: KnowledgeGraphProp
         .attr('stroke-width', 2.5)
     })
 
-    // Drag
+    // Drag — keep nodes pinned where the user drops them
     const drag = d3.drag<SVGGElement, GraphNode>()
       .on('start', (event, d) => {
         if (!event.active) simulation.alphaTarget(0.3).restart()
@@ -171,7 +207,8 @@ export default function KnowledgeGraph({ data, onNodeClick }: KnowledgeGraphProp
       .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y })
       .on('end', (event, d) => {
         if (!event.active) simulation.alphaTarget(0)
-        d.fx = null; d.fy = null
+        // Keep fx/fy set so the node stays where the user placed it
+        savePositions(data.nodes)
       })
 
     node.call(drag)
@@ -190,6 +227,20 @@ export default function KnowledgeGraph({ data, onNodeClick }: KnowledgeGraphProp
       link.attr('d', d => linkPath(d as GraphLink))
       node.attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`)
     })
+
+    simulation.on('end', () => {
+      // Pin all nodes at their settled positions and persist
+      data.nodes.forEach(n => { n.fx = n.x; n.fy = n.y })
+      savePositions(data.nodes)
+    })
+
+    // If all nodes have saved positions, do one manual render then stop —
+    // this ensures nodes appear in the right place without any animation
+    if (allPinned) {
+      link.attr('d', d => linkPath(d as GraphLink))
+      node.attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`)
+      simulation.stop()
+    }
 
     return () => { simulation.stop() }
   }, [data, onNodeClick])
