@@ -169,7 +169,7 @@ export default function IdeaDetail({ idea, onClose, onDelete, onUpdate, floating
       top: '50%',
       left: '50%',
       transform: 'translate(-50%, -50%)',
-      width: 580,
+      width: 'min(580px, calc(100vw - 24px))',
       maxHeight: '85vh',
       background: '#fff',
       borderRadius: 'var(--radius-lg)',

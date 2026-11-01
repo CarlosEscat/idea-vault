@@ -52,15 +52,23 @@ html, body { height: 100%; background: var(--color-paper); color: var(--color-in
   75%, 100% { transform: scale(1.5); opacity: 0; }
 }
 
-/* ─── Mobile layout: sidebar becomes a top bar, content stacks below ─────────── */
+/* ─── Mobile layout: sidebar hidden by default, slides in as overlay ─────────── */
 @media (max-width: 768px) {
-  .app-body { flex-direction: column !important; overflow-y: auto !important; padding: 8px !important; }
+  .app-body { overflow-y: auto !important; padding: 8px !important; }
+  .sidebar-hamburger { display: block !important; }
   .app-sidebar {
-    width: auto !important; min-width: 0 !important; margin: 0 !important;
-    flex-direction: row !important; flex-wrap: wrap; align-items: center; gap: 4px !important;
-    padding: 8px !important; flex-shrink: 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.18) !important;
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; bottom: 0 !important;
+    width: 260px !important; min-width: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0 !important;
+    z-index: 150;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    flex-direction: column !important;
+    overflow-y: auto;
   }
-  .app-sidebar > div[style*="flex: 1"] { display: none; }
-  .app-main { margin: 0 !important; flex: none !important; min-height: 70vh; min-width: 0 !important; }
+  .app-sidebar.sidebar-open { transform: translateX(0) !important; }
+  .app-main { margin: 0 !important; flex: none !important; min-height: 70vh; min-width: 0 !important; width: 100% !important; padding: 1rem !important; box-sizing: border-box; }
+  .stat-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
 }

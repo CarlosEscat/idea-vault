@@ -22,10 +22,14 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
   const router = useRouter()
   const supabase = createClient()
   const [isDemo, setIsDemo] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => setIsDemo(data.user?.app_metadata?.is_demo === true))
   }, [])
+
+  // Close mobile menu on route change
+  useEffect(() => { setMobileOpen(false) }, [pathname])
 
   async function handleExport() {
     const res = await fetch('/api/export')
@@ -52,7 +56,45 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
   }
 
   return (
-    <aside className="app-sidebar" style={{
+    <>
+      {/* Mobile hamburger button — only visible on mobile via CSS */}
+      <button
+        className="sidebar-hamburger"
+        onClick={() => setMobileOpen(o => !o)}
+        aria-label="Open menu"
+        style={{
+          display: 'none', // shown via CSS on mobile
+          position: 'fixed',
+          top: 10,
+          right: 16,
+          zIndex: 200,
+          background: 'none',
+          border: 'none',
+          color: '#fff',
+          fontSize: 22,
+          cursor: 'pointer',
+          lineHeight: 1,
+          padding: '4px 6px',
+        }}
+      >
+        {mobileOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMobileOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.35)',
+            zIndex: 149,
+          }}
+        />
+      )}
+
+    <aside className={`app-sidebar${mobileOpen ? ' sidebar-open' : ''}`} style={{
       width: 300,
       minWidth: 300,
       margin: '30px',
@@ -155,5 +197,6 @@ export default function Sidebar({ userName, ideaCount }: SidebarProps) {
         </div>
       )}
     </aside>
+    </>
   )
 }

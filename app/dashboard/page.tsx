@@ -108,7 +108,7 @@ export default function DashboardPage() {
           background: 'var(--color-surface)',
         }}>
           {/* All content centered */}
-          <div style={{ maxWidth: 580, margin: '0 auto' }}>
+          <div style={{ maxWidth: 580, margin: '0 auto', minWidth: 0, width: '100%' }}>
 
           {/* Date */}
           <div style={{
@@ -153,7 +153,7 @@ export default function DashboardPage() {
 
           <CaptureInput providerLabel={providerLabel} onCapture={handleCapture} />
             {ideas.length > 0 && (
-              <div style={{
+              <div className="stat-cards-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(3, 1fr)',
                 gap: 10,
