@@ -169,8 +169,8 @@ export default function IdeaDetail({ idea, onClose, onDelete, onUpdate, floating
       top: '50%',
       left: '50%',
       transform: 'translate(-50%, -50%)',
-      width: 'min(580px, calc(100vw - 24px))',
-      maxHeight: '85vh',
+      width: editing ? 'min(760px, calc(100vw - 24px))' : 'min(580px, calc(100vw - 24px))',
+      maxHeight: editing ? '92vh' : '85vh',
       background: '#fff',
       borderRadius: 'var(--radius-lg)',
       zIndex: 100,
@@ -178,6 +178,7 @@ export default function IdeaDetail({ idea, onClose, onDelete, onUpdate, floating
       flexDirection: 'column',
       boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
       overflow: 'hidden',
+      transition: 'width 0.2s ease, max-height 0.2s ease',
     } : {
       position: 'fixed',
       top: 0,
@@ -439,8 +440,8 @@ export default function IdeaDetail({ idea, onClose, onDelete, onUpdate, floating
             onChange={e => setDraftContent(e.target.value)}
             style={{
               ...inputStyle,
-              height: '100%',
-              resize: 'none',
+              minHeight: 420,
+              resize: 'vertical',
               lineHeight: 1.7,
               fontSize: 13,
             }}
