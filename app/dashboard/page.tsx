@@ -151,20 +151,9 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <CaptureInput providerLabel={providerLabel} onCapture={handleCapture} />
-            {ideas.length > 0 && (
-              <div className="stat-cards-grid" style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 10,
-                marginBottom: '2rem',
-              }}>
-                <StatCard value={ideas.length} label="Ideas" />
-                <StatCard value={totalConnections} label="Connections" />
-                <StatCard value={categories} label="Categories" />
-              </div>
-            )}
-
+          <div className="capture-input-wider">
+            <CaptureInput providerLabel={providerLabel} onCapture={handleCapture} />
+          </div>
             {ideas.length > 0 && (
               <>
                 <div style={{
@@ -177,7 +166,7 @@ export default function DashboardPage() {
                   Latest Ideas
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {ideas.slice(0, 10).map((idea, i) => (
+                  {ideas.slice(0, 3).map((idea, i) => (
                     <IdeaRow
                       key={idea.id}
                       idea={idea}

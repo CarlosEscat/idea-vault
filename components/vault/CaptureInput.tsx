@@ -129,7 +129,7 @@ export default function CaptureInput({ providerLabel, onCapture }: CaptureInputP
         borderRadius: 'var(--radius-lg)',
         boxShadow: '0 10px 25px -5px rgba(19, 78, 74, 0.09), 0 8px 10px -6px rgba(19, 78, 74, 0.04)',
         padding: '1.5rem 1.75rem',
-        background: '#fff',
+        background: 'rgb(226, 251, 246)',
         position: 'relative',
       }}>
         <textarea

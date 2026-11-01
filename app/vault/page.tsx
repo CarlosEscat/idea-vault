@@ -64,6 +64,7 @@ export default function VaultPage() {
     setSearchError(null)
   }
 
+  const totalConnections = ideas.reduce((sum, idea) => sum + idea.connections.length, 0)
   const categories = [...new Set(ideas.map(i => i.category))].sort()
 
   const filtered = ideas.filter(idea => {
@@ -122,9 +123,36 @@ export default function VaultPage() {
         }}>
           {/* Title */}
           <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: '0.25rem' }}>Vault</h1>
-          <p style={{ fontSize: 13, color: 'var(--color-ink-muted)', marginBottom: '1.75rem' }}>
+          <p style={{ fontSize: 13, color: 'var(--color-ink-muted)', marginBottom: '1rem' }}>
             All your ideas, searchable
           </p>
+
+          {/* Stats */}
+          {ideas.length > 0 && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 8,
+              maxWidth: 620,
+              margin: '0 auto 1.5rem',
+            }}>
+              {[
+                { value: ideas.length, label: 'Ideas' },
+                { value: totalConnections, label: 'Connections' },
+                { value: categories.length, label: 'Categories' },
+              ].map(({ value, label }) => (
+                <div key={label} style={{
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '0.6rem 1rem',
+                  background: '#fff',
+                }}>
+                  <div style={{ fontSize: 20, fontWeight: 600, lineHeight: 1, marginBottom: 3 }}>{value}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-ink-muted)', textTransform: 'capitalize' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Search row */}
           <div style={{

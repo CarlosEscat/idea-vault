@@ -71,4 +71,7 @@ html, body { height: 100%; background: var(--color-paper); color: var(--color-in
   .app-sidebar.sidebar-open { transform: translateX(0) !important; }
   .app-main { margin: 0 !important; flex: none !important; min-height: 70vh; min-width: 0 !important; width: 100% !important; padding: 1rem !important; box-sizing: border-box; }
   .stat-cards-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .capture-input-wider { margin: 0 !important; }
 }
+
+.capture-input-wider { margin: 0 -3rem; }
