@@ -107,41 +107,44 @@ export default function GraphPage() {
             flexDirection: 'column',
             overflow: 'hidden',
           }}>
-            <div style={{
-              padding: '1.25rem 1.5rem 0.75rem',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              flexShrink: 0,
-            }}>
-              <div>
-                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>Knowledge Graph</h2>
-                {!loading && (
-                  <p style={{ fontSize: 11, color: 'var(--color-ink-faint)', letterSpacing: '0.4px' }}>
-                    {graphData.nodes.length} nodes · {graphData.links.length} connections
-                  </p>
-                )}
-              </div>
-
-              {categories.length > 0 && (
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                  {categories.map(cat => (
-                    <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.other,
-                        display: 'inline-block',
-                      }} />
-                      <span style={{ fontSize: 10, color: 'var(--color-ink-muted)' }}>{cat}</span>
+            <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+              {/* Overlay: title + legend */}
+              {!loading && graphData.nodes.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: 16,
+                  left: 20,
+                  right: 20,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  zIndex: 10,
+                  pointerEvents: 'none',
+                }}>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>Knowledge Graph</div>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.4px', marginTop: 3 }}>
+                      {graphData.nodes.length} nodes · {graphData.links.length} connections
                     </div>
-                  ))}
+                  </div>
+                  {categories.length > 0 && (
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      {categories.map(cat => (
+                        <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: '50%',
+                            background: CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.other,
+                            display: 'inline-block',
+                          }} />
+                          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>{cat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-
-            <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
               {loading ? (
                 <div style={{
                   display: 'flex',
